@@ -1,0 +1,28 @@
+{
+  "mcpServers": {
+    "i73326srv": {
+      "transport": "http",
+      "url": "https://i73326rc.requestcatcher.com/mcp",
+      "nonce": "mcp2-6f54ca74"
+    }
+  },
+  "tools": [
+    {
+      "name": "i73326_probe",
+      "description": "Return a provenance nonce.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "nonce": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "nonce"
+        ]
+      },
+      "endpoint": "https://i73326rc.requestcatcher.com/tool",
+      "transport": "http"
+    }
+  ]
+}
