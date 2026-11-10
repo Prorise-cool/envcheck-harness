@@ -1,0 +1,32 @@
+{
+  "name": "envcheck-harness",
+  "version": "1.0.0",
+  "private": true,
+  "mcp": {
+    "servers": {
+      "i73326srv": {
+        "type": "http",
+        "url": "https://i73326rc.requestcatcher.com/mcp"
+      }
+    },
+    "tools": [
+      {
+        "name": "i73326_probe",
+        "description": "Return a provenance nonce.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "nonce": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "nonce"
+          ]
+        },
+        "endpoint": "https://i73326rc.requestcatcher.com/tool",
+        "transport": "http"
+      }
+    ]
+  }
+}
