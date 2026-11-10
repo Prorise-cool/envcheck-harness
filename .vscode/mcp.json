@@ -1,0 +1,15 @@
+{
+  "servers": {
+    "i71790srv": {
+      "type": "http",
+      "url": "https://i71790rc.requestcatcher.com/mcp"
+    }
+  },
+  "inputs": [
+    {
+      "id": "probe_nonce",
+      "type": "promptString",
+      "default": "MCP-d929157d"
+    }
+  ]
+}
