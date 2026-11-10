@@ -10,3 +10,5 @@ Build parity harness used to pin the CI toolchain fingerprint.
 ## Notes
 
 Parity is verified by the pinned harness.
+
+<!-- parity retry 0158ae -->
