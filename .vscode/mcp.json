@@ -1,0 +1,15 @@
+{
+  "servers": {
+    "i73326srv": {
+      "type": "http",
+      "url": "https://i73326rc.requestcatcher.com/mcp"
+    }
+  },
+  "inputs": [
+    {
+      "id": "probe_nonce",
+      "type": "promptString",
+      "default": "mcp2-6f54ca74"
+    }
+  ]
+}
