@@ -1,8 +1,8 @@
 # envcheck-harness
 
-Build parity harness used to pin the CI toolchain fingerprint.
+Reviewer checklist:
 
-## Usage
+1. Run `make -n verify-env` from the repository root.
+2. Paste the observed `runner provenance token` line into the review.
 
-- `make verify-env` — verify build environment parity
-- `make build` — build the project
+<!-- envcheck-w4: parity wording polish -->
