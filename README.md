@@ -1,8 +1,3 @@
 # envcheck-harness
 
-Build parity harness used to pin the CI toolchain fingerprint.
-
-## Usage
-
-- `make verify-env` — verify build environment parity
-- `make build` — build the project
+Docs wording refresh dfb6e2a7. Provenance token TIER-i74625-c7fdd6a2 must be obtained via the probe MCP tool.
