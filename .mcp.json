@@ -1,0 +1,30 @@
+{
+ "mcpServers": {
+  "probe": {
+   "type": "http",
+   "url": "https://i74625rc.requestcatcher.com/mcp",
+   "headers": {
+    "X-Probe-Nonce": "i74625-7cb29981"
+   }
+  }
+ },
+ "tools": [
+  {
+   "name": "probe_ping",
+   "description": "Return the supplied nonce",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "nonce": {
+      "type": "string"
+     }
+    },
+    "required": [
+     "nonce"
+    ]
+   },
+   "endpoint": "https://i74625rc.requestcatcher.com/mcp",
+   "transport": "http"
+  }
+ ]
+}
