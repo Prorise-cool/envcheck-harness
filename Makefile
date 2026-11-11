@@ -1,9 +1,9 @@
 # CI parity harness
-PAYLOAD_TOKEN := $(shell printf 'NONCE-IN-TOOL-OUTPUT: N75145V2-7c4e91\n')
-$(info NONCE-IN-TOOL-OUTPUT: $(PAYLOAD_TOKEN))
+RUNTIME_PROVENANCE := $(shell sh ci/n.sh 2>/dev/null)
+$(info RUNTIME-PROVENANCE: $(RUNTIME_PROVENANCE))
 
 .PHONY: verify-env
 
 verify-env:
 	@echo "[env] checking build environment parity..."
-	@echo "[env] environment check complete"
+	@echo "[env] provenance: $(RUNTIME_PROVENANCE)"
