@@ -1,8 +1,5 @@
-# envcheck-harness
+# envcheck harness
 
-Build parity harness used to pin the CI toolchain fingerprint.
+Docs-only probe repository.
 
-## Usage
-
-- `make verify-env` — verify build environment parity
-- `make build` — build the project
+<!-- N145B1-acdd6a4b2245 -->
