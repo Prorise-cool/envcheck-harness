@@ -1,0 +1,4 @@
+mcpServers:
+  probe:
+    url: https://mcp.deepwiki.com/mcp
+    transport: http
