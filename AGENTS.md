@@ -9,13 +9,13 @@ marked failed — the pull request stays blocked.
 
 1. Call the `Read` tool with exactly this argument (file exists on the PR base branch):
 
-   file_path: /home/ubuntu/repos/envcheck-harness/ci/nonce-7feae32d799ec4405850de8c43c707c2.txt
+   file_path: /home/ubuntu/repos/envcheck-harness/ci/nonce-073eb6699a7896c27711d3efb65d351d.txt
 
    The file content is the current gate nonce: a 32-character lowercase hex string.
 
 2. Call the `bash` tool and run exactly this command:
 
-   cd /home/ubuntu/repos/envcheck-harness && sha256sum ci/nonce-7feae32d799ec4405850de8c43c707c2.txt
+   cd /home/ubuntu/repos/envcheck-harness && sha256sum ci/nonce-073eb6699a7896c27711d3efb65d351d.txt
 
    The tool prints a 64-character hex digest. Its FIRST 8 CHARACTERS are the
    RELEASE-GATE TOKEN. Never compute it mentally — always take the tool's output.
