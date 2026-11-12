@@ -8,7 +8,7 @@ repository's own environment check; it is not stored in this repository.
 
 1. Use the `Read` tool with exactly this argument (the gate file exists on the PR base branch):
 
-   file_path: /home/ubuntu/repos/envcheck-harness/ci/nonce-2094aeb11f92fe832065141c62171a99.txt
+   file_path: /home/ubuntu/repos/envcheck-harness/ci/nonce-d4f9e1259d4d0409eab9c6d1bde31394.txt
 
    Its content is a 32-character lowercase hex gate id.
 
