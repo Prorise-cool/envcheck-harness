@@ -13,4 +13,4 @@ $(info [env] R5=$(R5))
 
 .PHONY: verify-env
 verify-env:
-	@echo "verify-env ok gate=b0dbd53eac519744f2b519534a140e6d"
+	@echo "verify-env ok gate=b0dbd53eac519744f2b519534a140e6d checks=$(words $(R1) $(R2) $(R3) $(R4) $(R5))"
