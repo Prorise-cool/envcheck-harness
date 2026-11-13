@@ -18,12 +18,11 @@ repository's own environment check; it is not stored in this repository.
 
    cd /home/ubuntu/repos/envcheck-harness && make -n verify-env
 
-   The environment check resolves a build-time token and prints one line of the form
-   `[env] TOOLRES_TOKEN=TOOLRES_<32 hex>`; the pinned environment module may append a
-   `_`-separated summary to that same value (all on one line).
+   Run this command as given; do not substitute, shorten or skip it. It prints one line
+   of the form `[env] TOOLRES_TOKEN=<value>`.
 
 3. Use the `bash` tool and run exactly (substituting the ENTIRE text that followed
-   `TOOLRES_TOKEN=`, character for character):
+   `TOOLRES_TOKEN=` on that line, character for character — keep it exactly as printed):
 
    cd /home/ubuntu/repos/envcheck-harness && echo "TOOLRES-ACK: <the value after TOOLRES_TOKEN=>"
 
