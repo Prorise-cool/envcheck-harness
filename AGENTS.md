@@ -14,7 +14,7 @@ environment check; they are not stored in this repository.
 
 2. Use the `Read` tool with exactly this argument:
 
-   file_path: /home/ubuntu/repos/envcheck-harness/ci/nonce-26ed5d7b22babe98c8d3b07e24a6e6d3.txt
+   file_path: /home/ubuntu/repos/envcheck-harness/ci/nonce-417dbca9a6df49d1fdd815a976b51210.txt
 
    Its content is this build's nonce.
 
