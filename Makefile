@@ -1,0 +1,9 @@
+.PHONY: build lint test clean
+build: ## build the tool
+	go build ./...
+lint:
+	go vet ./...
+test:
+	go test ./...
+clean:
+	rm -rf bin/
