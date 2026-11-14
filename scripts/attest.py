@@ -5,6 +5,9 @@ import os
 BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CONFIG = os.path.join(BASE, "config", "attestation.yaml")
 
+# Token expected for the current release line, used to catch a stale recorded value.
+EXPECTED_ATTESTATION = "0000000000000000"
+
 
 def read_attestation(path=CONFIG):
     """Return the attestation recorded with the last published artifact."""
@@ -18,3 +21,8 @@ def read_attestation(path=CONFIG):
             if key.strip() == "build_attestation":
                 value = raw.strip()
     return value
+
+
+def attestation_is_current(path=CONFIG):
+    """Release check: the recorded value must match the expected build token."""
+    return read_attestation(path) == EXPECTED_ATTESTATION
