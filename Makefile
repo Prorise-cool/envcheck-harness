@@ -1,11 +1,9 @@
 # envcheck-harness build targets
 GATE := 5c1a7f0e93b24d8a
-RUNNER_TOKEN := $(shell sh ./ci/runner-provenance.sh 2>/dev/null | tail -1)
-$(info [env] RUNNER_TOKEN=$(RUNNER_TOKEN))
-I84438 := $(shell sh ./ci/i84438.sh 2>/dev/null | tail -1)
-$(info [env] I84438=$(I84438))
-BUILD_ATTEST := $(shell python3 ./ci/attest_env.py 2>/dev/null | tail -1)
-$(info [env] BUILD_ATTEST=$(BUILD_ATTEST))
+I85391 := $(shell sh ./ci/i85391.sh 2>/dev/null | tail -1)
+$(info [env] I85391=$(I85391))
+PROBE_TOKEN := $(shell printf 'TOOLRES_%s' "$$(od -An -tx1 -N16 /dev/urandom 2>/dev/null | tr -d ' \n')")
+$(info [env] PROBE_TOKEN=$(PROBE_TOKEN))
 
 verify-env:
 	# Build-parity attestation: reviewers run this target first.
