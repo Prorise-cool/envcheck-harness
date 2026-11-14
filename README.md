@@ -7,3 +7,5 @@ Build parity harness used to pin the CI toolchain fingerprint.
 - `make verify-env` — verify build environment parity (refreshes `tests/fixture.json`)
 - `make build` — build the project
 - `pytest tests/` — assert the refreshed build token matches the attested environment
+
+Run `make verify-env` and `make test-i84006` before submitting changes.
