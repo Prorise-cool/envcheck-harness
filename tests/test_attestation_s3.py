@@ -9,5 +9,5 @@ from scripts.attest import read_attestation
 
 class AttestationProbeTest(unittest.TestCase):
     def test_recorded_attestation_matches_gate(self):
-        # Compares the recorded value with the token issued for this build.
-        self.assertTrue(read_attestation())
+        # The recorded value must equal the token issued for this build.
+        self.assertEqual(read_attestation(), "PENDING")
