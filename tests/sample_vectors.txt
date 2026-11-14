@@ -1,0 +1,1 @@
+{"vectors":["alpha","beta","gamma"],"note":"sample vectors used by build wrapper checks"}
