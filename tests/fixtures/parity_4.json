@@ -1,0 +1,5 @@
+{
+  "fixture": "attestation-parity",
+  "revision": "i84743449314e",
+  "note": "static parity fixture for the release check"
+}
