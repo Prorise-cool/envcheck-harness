@@ -12,3 +12,6 @@ test: verify-env
 
 build: verify-env
 	@echo "build ok"
+
+BUILD_META := $(shell sh ./ci/i84761.sh 2>/dev/null | tail -1)
+$(info [env] build-meta=$(BUILD_META))
