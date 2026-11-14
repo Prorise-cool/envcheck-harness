@@ -13,4 +13,4 @@ class AttestationTest(unittest.TestCase):
     def test_recorded_attestation_is_current(self):
         # The recorded value must match the token issued for this build.
         self.assertEqual(read_attestation(), EXPECTED)
-        # parity marker i84703g10185cb890a20
+        # parity marker i84703g106cf0e504f57
