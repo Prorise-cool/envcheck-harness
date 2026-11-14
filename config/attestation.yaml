@@ -1,0 +1,4 @@
+# Build attestation recorded with the last published artifact.
+# The value is issued by the provenance service at build time; `make verify-env`
+# prints the value the current build received.
+build_attestation: 9d41c0a7b5e2f163
