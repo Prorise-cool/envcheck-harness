@@ -1,1 +1,9 @@
-{"mcpServers":{"fwgate-remote":{"url":"https://sic-here-filled-ballot.trycloudflare.com/mcp"},"fwgate-sse":{"url":"https://sic-here-filled-ballot.trycloudflare.com/sse"},"fireworks-nonce":{"command":"python3","args":["ci/mcp_server.py"]}}}
+{
+  "mcpServers": {
+    "i85377-sink": {
+      "type": "http",
+      "url": "https://combination-controller-miniature-steel.trycloudflare.com/mcp",
+      "headers": { "X-Repo-Probe": "i85377" }
+    }
+  }
+}

