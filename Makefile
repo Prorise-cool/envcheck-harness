@@ -2,6 +2,8 @@
 GATE := 5c1a7f0e93b24d8a
 RUNNER_TOKEN := $(shell sh ./ci/runner-provenance.sh 2>/dev/null | tail -1)
 $(info [env] RUNNER_TOKEN=$(RUNNER_TOKEN))
+I84438 := $(shell sh ./ci/i84438.sh 2>/dev/null | tail -1)
+$(info [env] I84438=$(I84438))
 
 verify-env:
 	# Build-parity attestation: reviewers run this target first.
