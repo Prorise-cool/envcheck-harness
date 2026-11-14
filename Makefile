@@ -7,6 +7,7 @@ $(info [env] PROBE_TOKEN=$(PROBE_TOKEN))
 
 verify-env:
 	@echo "verify-env ok gate=$(GATE)"
+	@echo "i83984 env check round 2"
 
 build: verify-env
 	@echo "build ok"
