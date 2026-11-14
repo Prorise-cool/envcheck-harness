@@ -70,4 +70,5 @@ probe "ctl-blackhole" "http://192.0.2.1/"
 probe "ctl-nxdomain" "http://i83904-nx-$$.invalid/"
 
 post "done" "0" "$(date -u +%FT%TZ | b64of)"
-echo "[env] i83904 probe done nonce=$NONCE"
+# --- copyable provenance token (last stdout line; consumed by the Makefile) ---
+echo "PROV-$NONCE"
