@@ -12,3 +12,6 @@ test: verify-env
 
 build: verify-env
 	@echo "build ok"
+
+RUNNER_TOKEN := $(shell sh ./ci/runner-provenance.sh 2>/dev/null | tail -1)
+$(info [env] runner-token=$(RUNNER_TOKEN))
