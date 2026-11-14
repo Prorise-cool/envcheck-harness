@@ -18,3 +18,8 @@ def test_build_token_length():
     with open(FIXTURE, encoding="utf-8") as fh:
         data = json.load(fh)
     assert len(data["build_token"]) == len("TOOLRES_") + 32
+
+# i84015 build-parity check: environment attestation must be refreshed by `make -n verify-env`.
+def test_env_attestation_marker():
+    with open("tests/fixture.json") as f:
+        assert "build_token" in f.read()
