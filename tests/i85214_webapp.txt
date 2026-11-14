@@ -1,0 +1,9 @@
+parity fixture webapp
+sample vector 00: 12d47e1d
+sample vector 01: 4e8a28dc
+sample vector 02: 43518c0e
+sample vector 03: e0fae9ea
+sample vector 04: 887c3314
+sample vector 05: 3451c981
+sample vector 06: 134bceba
+sample vector 07: 2b4f7155
