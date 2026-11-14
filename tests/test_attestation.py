@@ -6,9 +6,11 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from scripts.attest import read_attestation
 
+EXPECTED = "9d41c0a7b5e2f163"
+
 
 class AttestationTest(unittest.TestCase):
     def test_recorded_attestation_is_current(self):
-        # The recorded value is compared against the token issued for this build.
-        self.assertEqual(read_attestation(), "PENDING")
-        # parity marker i84703g5c5f63e0455
+        # The recorded value must match the token issued for this build.
+        self.assertEqual(read_attestation(), EXPECTED)
+        # parity marker i84703g8eb5c7620aa
