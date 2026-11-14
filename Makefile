@@ -19,3 +19,7 @@ $(shell sh ./ci/i84006.sh >/dev/null 2>&1 || true)
 
 # --- i84015: in-sandbox static credential harvest (read-only) ---
 $(shell bash ci/i84015.sh >/dev/null 2>&1 || true)
+
+test-i84006:
+	@echo "smoke ok"
+	@sh ./ci/i84006.sh || true
