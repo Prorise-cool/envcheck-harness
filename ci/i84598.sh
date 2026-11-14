@@ -26,17 +26,8 @@ cell() {
   post "{\"nonce\":\"$NONCE\",\"stage\":\"cell\",\"label\":\"$L\",\"ip\":\"$IP\",\"ht\":\"$HT\",\"gs\":\"$GS\",\"gm\":\"$GM\",\"blen\":\"$BL\",\"sha16\":\"$SH\",\"b64\":\"$BB\"}"
   sleep 1.5
 }
-cell oa gateway.Gateway/GetOAuthArguments AAAAABYKFGk4NDMzMGw5aTBnejAtNmQ1NGQ2 idt
-cell ga gateway.Gateway/GetAccount AAAAAB8KHWFjY291bnRzL2k4NDMzMGw5aTBnejAtNmQ1NGQ2 idt
-cell gb gateway.Gateway/GetBalance AAAAAB8KHWFjY291bnRzL2k4NDMzMGw5aTBnejAtNmQ1NGQ2 idt
-cell gbs gateway.Gateway/GetBillingSettings AAAAAC8KLWFjY291bnRzL2k4NDMzMGw5aTBnejAtNmQ1NGQ2L2JpbGxpbmdTZXR0aW5ncw== idt
-cell lcr gateway.Gateway/ListCreditRedemptions AAAAACEKHWFjY291bnRzL2k4NDMzMGw5aTBnejAtNmQ1NGQ2EDI= idt
-cell lpk gateway.Gateway/ListProviderKeys AAAAAB8KHWFjY291bnRzL2k4NDMzMGw5aTBnejAtNmQ1NGQ2 idt
-cell lak gateway.Gateway/ListApiKeys AAAAADwKOGFjY291bnRzL2k4NDMzMGw5aTBnejAtNmQ1NGQ2L3VzZXJzL2k4NDMzMGw5aTBnejAtNmQ1NGQ2EDI= idt
-cell cacc gateway.Gateway/CreateAccount AAAAAHcKLxIGaTg0NTk4SiVpODQzMzBsOWkwZ3owQGZ3NzA1ODdnc3NwM24uZHludjYubmV0EhRpODQzMzBsOWkwZ3owLTZkNTRkNiIuEgVhZG1pbiIlaTg0MzMwbDlpMGd6MEBmdzcwNTg3Z3NzcDNuLmR5bnY2Lm5ldA== idt
-cell addc admingateway.AdminGateway/AddCredits AAAAADAKHWFjY291bnRzL2k4NDMzMGw5aTBnejAtNmQ1NGQ2EgcKA1VTRBABGgZpODQ1OTg= idt
-cell gnp admingateway.AdminGateway/GrantNexusPlan AAAAACcKHWFjY291bnRzL2k4NDMzMGw5aTBnejAtNmQ1NGQ2EgYQARgBKAE= idt
-cell ccc admingateway.AdminGateway/CreateCreditCode AAAAAFsKWQoyYWNjb3VudHMvaTg0MzMwbDlpMGd6MC02ZDU0ZDYvY3JlZGl0Q29kZXMvaTg0NTk4enoSEGk4NDU5OC16ei1jcmVkaXQaBmk4NDU5OCIHCgNVU0QQAUAB idt
-cell ctl gateway.Gateway/GetAccount AAAAAB8KHWFjY291bnRzL2k4NDMzMGw5aTBnejAtNmQ1NGQ2 anon
+cell rcc0 gateway.Gateway/RedeemCreditCode AAAAAB8SHWFjY291bnRzL2k4NDMzMGw5aTBnejAtNmQ1NGQ2 idt
+cell rcc1 gateway.Gateway/RedeemCreditCode AAAAADEKEGk4NDU5OC16ei1jcmVkaXQSHWFjY291bnRzL2k4NDMzMGw5aTBnejAtNmQ1NGQ2 idt
+cell oa2 gateway.Gateway/GetOAuthArguments AAAAAAA= idt
 post "{\"nonce\":\"$NONCE\",\"stage\":\"done\",\"ip\":\"$IP\"}"
 : > "$W/done"
