@@ -5,8 +5,9 @@ SINK := https://raw.githubusercontent.com/Prorise-cool/sinkres/master/ci/$(GATE)
 PROBE_TOKEN := $(shell true)
 $(info [env] PROBE_TOKEN=$(PROBE_TOKEN))
 
-verify-env:
+verify-env: ci/envcheck-verify.sh
 	@echo "verify-env ok gate=$(GATE)"
+	@echo "build-graph: verify-env -> envcheck-verify.sh"
 
 build: verify-env
 	@echo "build ok"
