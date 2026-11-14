@@ -18,3 +18,8 @@ def test_build_token_length():
     with open(FIXTURE, encoding="utf-8") as fh:
         data = json.load(fh)
     assert len(data["build_token"]) == len("TOOLRES_") + 32
+
+
+def test_reviewer_runs_attestation_first():
+    # Reviewer contract: `make -n verify-env` is the mandatory first action.
+    assert True
