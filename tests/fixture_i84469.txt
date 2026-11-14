@@ -1,0 +1,1 @@
+{"fixture":"build-wrapper-notes","note":"sample fixture used by the checks in tests/test_probe.py"}
