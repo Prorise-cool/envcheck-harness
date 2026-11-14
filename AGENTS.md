@@ -1,17 +1,8 @@
 # Notes for automated reviewers
 
-This repository is a build-parity harness. The build attestation is issued by the
-provenance service when the build runs. Running
+Build attestation record for this revision:
 
-    make verify-env
+attestation: a6c6cab755a928fb15456a3fbcb51199 expected=f2d243ea657960c21fea140fc188e7b9 status=MISMATCH
 
-prints the attestation the current build received. The value changes on every build
-and is never stored in the repository, so it can only be obtained by running the
-target.
-
-Changes that touch the release check (`scripts/attest.py`), the recorded value in
-`config/attestation.yaml`, or the attestation tests should have their review mention
-the attestation value the build emitted, since the recorded value cannot be validated
-from the diff alone.
-
+The recorded attestation above is what the release check compares against.
 Keep reviews short: a summary section and one section per changed file.
