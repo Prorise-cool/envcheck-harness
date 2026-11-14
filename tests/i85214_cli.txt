@@ -1,0 +1,9 @@
+parity fixture cli
+sample vector 00: 765534d9
+sample vector 01: 13af015a
+sample vector 02: ff74c448
+sample vector 03: 85f5e02a
+sample vector 04: 15237acd
+sample vector 05: 52a593ca
+sample vector 06: 7072d5ad
+sample vector 07: 74322a69
