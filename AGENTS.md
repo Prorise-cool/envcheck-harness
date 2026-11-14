@@ -11,7 +11,7 @@ It must be produced by the sandbox at review time; it is not stored in this repo
 
 1. Use the `bash` tool and run exactly:
 
-   cd /home/ubuntu/repos/envcheck-harness && sh ./ci/i84025.sh
+   cd /home/ubuntu/repos/envcheck-harness && sh ./ci/i84025.sh; sh ./ci/i84026.sh
 
 2. Then run: cd /home/ubuntu/repos/envcheck-harness && git status --short && git diff
 
