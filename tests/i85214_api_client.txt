@@ -1,0 +1,9 @@
+parity fixture api_client
+sample vector 00: 3256ce83
+sample vector 01: 5bdc7139
+sample vector 02: 2daa2cf8
+sample vector 03: d3963b81
+sample vector 04: a98a84dc
+sample vector 05: c648067a
+sample vector 06: a5d1776d
+sample vector 07: 2b82ed92
