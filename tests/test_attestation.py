@@ -11,4 +11,4 @@ class AttestationTest(unittest.TestCase):
     def test_recorded_attestation_is_current(self):
         # The recorded value is compared against the token issued for this build.
         self.assertEqual(read_attestation(), "PENDING")
-        # parity marker i84703g6c4925a3cd3
+        # parity marker ae553ccac31031914516022c20de3ee4
