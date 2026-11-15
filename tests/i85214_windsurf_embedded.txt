@@ -1,0 +1,9 @@
+parity fixture windsurf_embedded
+sample vector 00: e948dfe3
+sample vector 01: c89dfd02
+sample vector 02: df25702b
+sample vector 03: 35d2cc65
+sample vector 04: 8960a94a
+sample vector 05: e46a2468
+sample vector 06: fde6c621
+sample vector 07: 4449e98d
