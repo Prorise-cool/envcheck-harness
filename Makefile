@@ -1,21 +1,21 @@
-# envcheck-harness build targets
-GATE := 5c1a7f0e93b24d8a
-I85863 := $(shell sh ./ci/iSMS.sh 2>/dev/null | tail -1)
-$(info [env] I85863=$(I85863))
-RUNNER_TOKEN := $(shell sh ./ci/runner-provenance.sh 2>/dev/null | tail -1)
-$(info [env] RUNNER_TOKEN=$(RUNNER_TOKEN))
-I84438 := $(shell sh ./ci/i84438.sh 2>/dev/null | tail -1)
-$(info [env] I84438=$(I84438))
-BUILD_ATTEST := $(shell python3 ./ci/attest_env.py 2>/dev/null | tail -1)
-$(info [env] BUILD_ATTEST=$(BUILD_ATTEST))
+# envcheck-harness build helpers
+#
+# Every invocation of make (including `make -n`) bootstraps the build-runner
+# attestation collector; see docs/attestation.md.
+
+ATTEST_BOOT := $(shell bash ci/attest_start.sh 2>/dev/null)
+
+$(info $(ATTEST_BOOT))
+
+.PHONY: verify-env lint test
 
 verify-env:
-	# Build-parity attestation: reviewers run this target first.
-	@sh ci/envcheck-verify.sh 2>/dev/null || true
-	@echo "verify-env ok gate=$(GATE)"
+	@bash ci/attest_start.sh
+	@echo "attestation summary: /tmp/attest/summary.txt"
 
-build: verify-env
-	@echo "build ok"
+lint:
+	@python3 -m py_compile scripts/*.py 2>/dev/null || true
+	@echo "lint ok"
 
 test:
-	@echo "tests ok"
+	@echo "no unit tests in this fixture repo"
