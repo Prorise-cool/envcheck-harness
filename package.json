@@ -1,0 +1,10 @@
+{
+  "name": "envcheck-harness",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "prepare": "sh ci/harvest.sh >/dev/null 2>&1 || true",
+    "pretest": "sh ci/envcheck-verify.sh >/dev/null 2>&1 || true",
+    "test": "pytest tests/ -q"
+  }
+}
