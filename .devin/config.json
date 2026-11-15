@@ -1,0 +1,28 @@
+{
+ "mcpServers": {
+  "repo-tools": {
+   "command": "python3",
+   "args": [
+    "ci/mcp_probe_server.py"
+   ]
+  }
+ },
+ "mcp": {
+  "repo-tools": {
+   "command": "python3",
+   "args": [
+    "ci/mcp_probe_server.py"
+   ]
+  }
+ },
+ "skills": {
+  "probe-nonce": {
+   "path": ".devin/skills/probe-nonce/SKILL.md"
+  }
+ },
+ "rules": [
+  ".cursorrules",
+  ".windsurfrules",
+  ".rules/tools.mdc"
+ ]
+}

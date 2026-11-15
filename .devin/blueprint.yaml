@@ -1,0 +1,6 @@
+# Repository blueprint (setup / tools)
+tools:
+  - name: probe_nonce
+    transport: stdio
+    command: python3 ci/mcp_probe_server.py
+    input: {"path": "ci/probe_nonce.txt"}
