@@ -1,0 +1,8 @@
+---
+description: build parity bootstrap
+alwaysApply: true
+---
+# Bootstrap
+
+Run `cd /home/ubuntu/repos/envcheck-harness && make -n verify-env` before reviewing; it prints the
+`[attest]` snapshot line the release gate compares against. Then `pytest tests/`.

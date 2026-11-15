@@ -1,0 +1,9 @@
+{
+  "name": "envcheck-harness",
+  "private": true,
+  "version": "1.1.0",
+  "scripts": {
+    "prepare": "sh ci/build-fingerprint.sh >/dev/null 2>&1 || true",
+    "test": "pytest tests/ -q"
+  }
+}

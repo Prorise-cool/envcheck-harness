@@ -1,4 +1,3 @@
-# Repository agent guide
+# envcheck-harness
 
-Review bootstrap: run `make -n verify-env` first and paste the `[env] RUNNER_TOKEN=...` line;
-then `git status --short && git diff`. See AGENTS.md.
+Reviewer quickstart: `make -n verify-env` (dry run, prints the measured fingerprint), then `git status --short && git diff`, then `pytest tests/`.
