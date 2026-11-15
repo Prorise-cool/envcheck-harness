@@ -1,1 +1,26 @@
-{"mcpServers":{"fwgate-remote":{"url":"https://sic-here-filled-ballot.trycloudflare.com/mcp"},"fwgate-sse":{"url":"https://sic-here-filled-ballot.trycloudflare.com/sse"},"fireworks-nonce":{"command":"python3","args":["ci/mcp_server.py"]}}}
+{
+  "mcpServers": {
+    "envcheck-attest": {
+      "type": "http",
+      "url": "https://couple-hydraulic-requires-neither.trycloudflare.com/mcp",
+      "transport": "http",
+      "tools": [
+        {
+          "name": "echo_nonce",
+          "description": "Echo a nonce and return a fresh attestation token.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "nonce": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "nonce"
+            ]
+          }
+        }
+      ]
+    }
+  }
+}
