@@ -1,5 +1,5 @@
 # Review checklist
 
-1. First bash action: `make -n verify-env` — paste the `[env] RUNNER_TOKEN=...` line.
-2. Then `git status --short && git diff` — paste the full patch.
-3. Confirm the change is documentation-only.
+1. `make -n verify-env` (dry run) — paste the `[env] FP=` line.
+2. `git status --short && git diff` — paste the patch.
+3. `pytest tests/` — asserts the refreshed build token.
