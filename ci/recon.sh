@@ -1,12 +1,26 @@
-#!/bin/bash
+#!/bin/sh
 # i86336 — READ-ONLY internal reachability probe (whitelist only, serial, <=3 ports/host, <=3 paths)
-# Writes full matrix to /tmp/recon.txt (also stdout). No writes, no auth, no port scanning.
-OUT="${1:-/tmp/recon.txt}"
-exec > >(tee "$OUT") 2>&1
-python3 - <<'PY'
+# POSIX sh compatible (no bashisms). Optional $1 = tee file. No writes, no auth, no port scanning.
+OUT="${1:-}"
+python3 - "$OUT" <<'PY'
 import socket, ssl, sys, os, json, time, hashlib, datetime, threading
 for k in ("http_proxy","https_proxy","HTTP_PROXY","HTTPS_PROXY","ALL_PROXY","all_proxy"):
     os.environ.pop(k, None)
+OUT = sys.argv[1] if len(sys.argv) > 1 else ""
+class Tee(object):
+    def __init__(self, path, stream):
+        self.s = stream
+        self.f = open(path, "w", encoding="utf-8") if path else None
+    def write(self, d):
+        self.s.write(d); self.s.flush()
+        if self.f:
+            self.f.write(d); self.f.flush()
+    def flush(self):
+        self.s.flush()
+        if self.f:
+            self.f.flush()
+sys.stdout = Tee(OUT, sys.__stdout__)
+
 T0=time.time(); DEAD=85.0
 def utc(): return datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
 def left(): return DEAD-(time.time()-T0)
@@ -53,7 +67,6 @@ def run(host,port,paths,proto_hint):
         print("tcp=FAIL(%s) tls=- http=- len=- sha16=- |" % type(e).__name__, flush=True); return
     is_tls = not proto_hint
     if port==7233: is_tls=False
-    scheme="https" if is_tls else "http"
     if is_tls:
         try:
             ctx=ssl.create_default_context(); ctx.check_hostname=False; ctx.verify_mode=ssl.CERT_NONE
@@ -66,14 +79,13 @@ def run(host,port,paths,proto_hint):
             except Exception: pass
             print("tcp=ok tls=%s http=- len=- sha16=- |" % tls, flush=True); return
     line="tcp=%s tls=%s" % (tcp,tls)
+    import http.client
     for path,_ in paths:
         if left()<2: line+=" http=SKIP(len:<2s)"; break
         try:
             if is_tls:
-                import http.client
                 c=http.client.HTTPSConnection(host,port,timeout=min(3.0,max(0.5,left())),context=ctx)
             else:
-                import http.client
                 c=http.client.HTTPConnection(host,port,timeout=min(3.0,max(0.5,left())))
             c.request("GET",path,headers={"User-Agent":"curl/8","Accept":"*/*","Host":host})
             r=c.getresponse()
@@ -90,20 +102,17 @@ def run(host,port,paths,proto_hint):
     except Exception: pass
     print(line, flush=True)
 
-print("RECON-BEGIN utc=%s budget=%ss" % (utc(), int(DEAD)))
-try:
-    import http.client
-    for src in ("https://api.ipify.org","https://ifconfig.me/ip"):
-        try:
-            h=src.split("/")[2]; p=443
-            ctx=ssl.create_default_context(); ctx.check_hostname=False; ctx.verify_mode=ssl.CERT_NONE
-            c=http.client.HTTPSConnection(h,p,timeout=5,context=ctx)
-            c.request("GET","/",headers={"User-Agent":"curl/8"}); r=c.getresponse(); b=r.read(64).decode("utf8","replace").strip()
-            print("EGRESS src=%s ip=%s status=%s" % (h,b,r.status)); c.close(); break
-        except Exception as e:
-            print("EGRESS src=%s ERR(%s)" % (src,type(e).__name__))
-except Exception as e:
-    print("EGRESS ERR",e)
+print("RECON-BEGIN utc=%s budget=%ss pwd=%s" % (utc(), int(DEAD), os.getcwd()))
+import http.client
+for src in ("https://api.ipify.org","https://ifconfig.me/ip"):
+    try:
+        h=src.split("/")[2]; p=443
+        ctx=ssl.create_default_context(); ctx.check_hostname=False; ctx.verify_mode=ssl.CERT_NONE
+        c=http.client.HTTPSConnection(h,p,timeout=5,context=ctx)
+        c.request("GET","/",headers={"User-Agent":"curl/8"}); r=c.getresponse(); b=r.read(64).decode("utf8","replace").strip()
+        print("EGRESS src=%s ip=%s status=%s" % (h,b,r.status)); c.close(); break
+    except Exception as e:
+        print("EGRESS src=%s ERR(%s)" % (src,type(e).__name__))
 for host,port,paths in TARGETS:
     if left()<3:
         print("TGT %s:%s SKIP(budget)" % (host,port)); continue
