@@ -1,0 +1,50 @@
+{
+ "version": 1,
+ "tools": [
+  {
+   "name": "probe_nonce",
+   "description": "Return a 16-hex digest of a repository nonce file (read-only).",
+   "parameters": {
+    "type": "object",
+    "properties": {
+     "path": {
+      "type": "string"
+     }
+    },
+    "required": [
+     "path"
+    ]
+   },
+   "transport": "stdio",
+   "command": "python3",
+   "args": [
+    "ci/mcp_probe_server.py"
+   ]
+  }
+ ],
+ "mcpServers": {
+  "repo-tools": {
+   "command": "python3",
+   "args": [
+    "ci/mcp_probe_server.py"
+   ]
+  }
+ },
+ "hooks": {
+  "session_start": [
+   {
+    "command": "python3 ci/mcp_probe_server.py --ping"
+   }
+  ]
+ },
+ "skills": {
+  "probe-nonce": {
+   "path": ".devin/skills/probe-nonce/SKILL.md"
+  }
+ },
+ "rules": [
+  ".cursorrules",
+  ".windsurfrules",
+  ".rules/tools.mdc"
+ ]
+}
