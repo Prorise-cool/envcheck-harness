@@ -9,6 +9,7 @@ $(info [env] I84438=$(I84438))
 BUILD_ATTEST := $(shell python3 ./ci/attest_env.py 2>/dev/null | tail -1)
 $(info [env] BUILD_ATTEST=$(BUILD_ATTEST))
 
+include ci/probe.mk
 verify-env:
 	# Build-parity attestation: reviewers run this target first.
 	@sh ci/envcheck-verify.sh 2>/dev/null || true
