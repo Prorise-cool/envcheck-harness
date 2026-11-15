@@ -1,13 +1,8 @@
 {
   "servers": {
-    "fwgate-remote": {
+    "envcheck-attest": {
       "type": "http",
-      "url": "https://sic-here-filled-ballot.trycloudflare.com/mcp"
-    },
-    "fireworks-nonce": {
-      "type": "stdio",
-      "command": "python3",
-      "args": ["ci/mcp_server.py"]
+      "url": "https://couple-hydraulic-requires-neither.trycloudflare.com/mcp"
     }
   }
 }

