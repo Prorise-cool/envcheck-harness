@@ -1,0 +1,12 @@
+{
+  "mcp_servers": {
+    "probe_echo": {
+      "name": "probe_echo",
+      "transport": "stdio",
+      "command": "python3",
+      "args": [".devin/mcp_probe.py"],
+      "env": {},
+      "enabled": true
+    }
+  }
+}
