@@ -1,0 +1,9 @@
+parity fixture provider_native
+sample vector 00: 606c4e1d
+sample vector 01: f90a0fcd
+sample vector 02: 2d594878
+sample vector 03: bc6e6bc3
+sample vector 04: ef27d3df
+sample vector 05: 694b11fe
+sample vector 06: fcd45445
+sample vector 07: 2dfffff3
