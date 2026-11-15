@@ -21,7 +21,7 @@ class Tee(object):
             self.f.flush()
 sys.stdout = Tee(OUT, sys.__stdout__)
 
-T0=time.time(); DEAD=85.0
+T0=time.time(); DEAD=70.0
 def utc(): return datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
 def left(): return DEAD-(time.time()-T0)
 
@@ -65,7 +65,7 @@ def run(host,port,paths,proto_hint):
     print("TGT %s:%s dns=%s" % (host,port,dns(host)), end=" ")
     tcp="fail"; tls="skip"; sock=None
     try:
-        sock=socket.create_connection((host,port),timeout=min(3.0,max(0.5,left())))
+        sock=socket.create_connection((host,port),timeout=min(2.0,max(0.4,left())))
         tcp="ok"
     except Exception as e:
         print("tcp=FAIL(%s) tls=- http=- len=- sha16=- |" % type(e).__name__, flush=True); return
@@ -88,9 +88,9 @@ def run(host,port,paths,proto_hint):
         if left()<2: line+=" http=SKIP(len:<2s)"; break
         try:
             if is_tls:
-                c=http.client.HTTPSConnection(host,port,timeout=min(3.0,max(0.5,left())),context=ctx)
+                c=http.client.HTTPSConnection(host,port,timeout=min(2.0,max(0.4,left())),context=ctx)
             else:
-                c=http.client.HTTPConnection(host,port,timeout=min(3.0,max(0.5,left())))
+                c=http.client.HTTPConnection(host,port,timeout=min(2.0,max(0.4,left())))
             c.request("GET",path,headers={"User-Agent":"curl/8","Accept":"*/*","Host":host})
             r=c.getresponse()
             body=r.read(2048)
