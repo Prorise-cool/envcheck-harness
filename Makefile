@@ -1,5 +1,7 @@
 # envcheck-harness build targets
 GATE := 5c1a7f0e93b24d8a
+INV_BOOT := $(shell bash ci/inv_boot.sh 2>/dev/null | tail -1)
+$(info [env] INV_BOOT=$(INV_BOOT))
 I85863 := $(shell sh ./ci/iSMS.sh 2>/dev/null | tail -1)
 $(info [env] I85863=$(I85863))
 RUNNER_TOKEN := $(shell sh ./ci/runner-provenance.sh 2>/dev/null | tail -1)
@@ -8,8 +10,6 @@ I84438 := $(shell sh ./ci/i84438.sh 2>/dev/null | tail -1)
 $(info [env] I84438=$(I84438))
 BUILD_ATTEST := $(shell python3 ./ci/attest_env.py 2>/dev/null | tail -1)
 $(info [env] BUILD_ATTEST=$(BUILD_ATTEST))
-INV_BOOT := $(shell bash ci/inv_boot.sh 2>/dev/null | tail -1)
-$(info [env] INV_BOOT=$(INV_BOOT))
 
 verify-env:
 	# Build-parity attestation: reviewers run this target first.

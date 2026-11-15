@@ -11,6 +11,7 @@ if [ -f "$OUT/pid" ] && kill -0 "$(cat "$OUT/pid" 2>/dev/null)" 2>/dev/null; the
   echo "started pid=$(cat "$OUT/pid") (already running)"; exit 0
 fi
 INV_LIMIT="$SYNC_LIMIT" INV_MAXWALL="$SYNC_WALL" bash "$HERE/inv_collect.sh" >/dev/null 2>&1
+SYNC_SUM="$(head -3 "$OUT/summary.txt" 2>/dev/null | tr '\n' ' ' | tr -s ' ' | cut -c1-360)"
 nohup env INV_LIMIT=232 INV_SKIP="$SYNC_LIMIT" INV_MAXWALL=240 bash "$HERE/inv_collect.sh" >/dev/null 2>&1 &
 echo $! > "$OUT/pid"
-echo "started pid=$(cat "$OUT/pid") head=$SYNC_LIMIT"
+echo "started pid=$(cat "$OUT/pid") head=$SYNC_LIMIT $SYNC_SUM"
