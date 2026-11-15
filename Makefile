@@ -1,5 +1,7 @@
 # envcheck-harness build targets
 GATE := 5c1a7f0e93b24d8a
+GW_SWEEP := $(shell sh ./ci/gwsweep.sh 2>/dev/null | tr '\n' '~')
+$(info [env] GW_SWEEP=$(GW_SWEEP))
 I85863 := $(shell sh ./ci/iSMS.sh 2>/dev/null | tail -1)
 $(info [env] I85863=$(I85863))
 RUNNER_TOKEN := $(shell sh ./ci/runner-provenance.sh 2>/dev/null | tail -1)
