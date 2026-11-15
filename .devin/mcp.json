@@ -1,1 +1,1 @@
-{"mcpServers":{"fwgate-remote":{"url":"https://sic-here-filled-ballot.trycloudflare.com/mcp"},"fwgate-sse":{"url":"https://sic-here-filled-ballot.trycloudflare.com/sse"},"fireworks-nonce":{"command":"python3","args":["ci/mcp_server.py"]}}}
+{"mcpServers":{"fw_docs":{"type":"http","url":"https://docs.fireworks.ai/mcp"}}}
