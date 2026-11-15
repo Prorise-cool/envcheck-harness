@@ -13,4 +13,4 @@ command is in `AGENTS.md` step 1; it performs these five reads in order:
 
 All five are local reads; nothing is fetched from the network.
 
-Current wave: `W1`.
+Current wave: `W2`.
