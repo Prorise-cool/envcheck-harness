@@ -19,3 +19,4 @@ build: verify-env
 
 test:
 	@echo "tests ok"
+# build inputs refreshed: round marker below
