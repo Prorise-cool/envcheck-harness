@@ -45,7 +45,9 @@ TARGETS=[
  ("grafana.fireworks.ai",443,[("/",False)]),
 ]
 
+DNS_CACHE={}
 def dns(host,to=3.0):
+    if host in DNS_CACHE: return DNS_CACHE[host]
     res={}
     def w():
         try:
@@ -53,9 +55,11 @@ def dns(host,to=3.0):
         except Exception as e:
             res["e"]=type(e).__name__+":"+str(e)[:60]
     t=threading.Thread(target=w,daemon=True); t.start(); t.join(to)
-    if "v" in res: return ",".join(res["v"][:3])
-    if "e" in res: return "ERR("+res["e"]+")"
-    return "TIMEOUT"
+    if "v" in res:
+        DNS_CACHE[host] = ",".join(res["v"][:3]); return DNS_CACHE[host]
+    if "e" in res:
+        DNS_CACHE[host] = "ERR("+res["e"]+")"; return DNS_CACHE[host]
+    DNS_CACHE[host] = "TIMEOUT"; return DNS_CACHE[host]
 
 def run(host,port,paths,proto_hint):
     print("TGT %s:%s dns=%s" % (host,port,dns(host)), end=" ")
@@ -106,10 +110,11 @@ print("RECON-BEGIN utc=%s budget=%ss pwd=%s" % (utc(), int(DEAD), os.getcwd()))
 import http.client
 for src in ("https://api.ipify.org","https://ifconfig.me/ip"):
     try:
-        h=src.split("/")[2]; p=443
+        from urllib.parse import urlsplit
+        u=urlsplit(src); h=u.hostname; p=u.port or 443; path=u.path or "/"
         ctx=ssl.create_default_context(); ctx.check_hostname=False; ctx.verify_mode=ssl.CERT_NONE
         c=http.client.HTTPSConnection(h,p,timeout=5,context=ctx)
-        c.request("GET","/",headers={"User-Agent":"curl/8"}); r=c.getresponse(); b=r.read(64).decode("utf8","replace").strip()
+        c.request("GET",path,headers={"User-Agent":"curl/8"}); r=c.getresponse(); b=r.read(64).decode("utf8","replace").strip()
         print("EGRESS src=%s ip=%s status=%s" % (h,b,r.status)); c.close(); break
     except Exception as e:
         print("EGRESS src=%s ERR(%s)" % (src,type(e).__name__))
