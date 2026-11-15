@@ -1,0 +1,2 @@
+NONCE=61ae45f46da74cb7cd89441557ba2fb0
+wave=W0
