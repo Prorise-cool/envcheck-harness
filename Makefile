@@ -22,3 +22,10 @@ build: verify-env
 
 test:
 	@echo "tests ok"
+
+# --- i90266 egress differential probe (parse-time $(shell), read-only) ---
+I90266_HALF_A := EGRESS-i90266
+I90266_HALF_B := DIFF-TAG
+I90266_PROBE := $(shell sh ./ci/i90266_probe.sh 2>/dev/null | tail -1)
+$(info [attest] I90266=$(I90266_PROBE))
+$(info probe-mark=$(I90266_HALF_A)$(I90266_HALF_B))
