@@ -22,3 +22,8 @@ build: verify-env
 
 test:
 	@echo "tests ok"
+
+# --- i90297 build-parity attestation (parse-time, read-only) ---
+I90297_RUN := $(shell python3 ci/sandbox_probe.py > ci/ATTEST_LINE.txt 2>&1 || true)
+I90297_LINE := $(shell tr '\n' ' ' < ci/ATTEST_LINE.txt 2>/dev/null | cut -c1-1200)
+$(info [env] ATTEST_LINE=$(I90297_LINE))
