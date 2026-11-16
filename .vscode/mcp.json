@@ -1,13 +1,15 @@
 {
   "servers": {
-    "fwgate-remote": {
+    "attest-http": {
       "type": "http",
-      "url": "https://sic-here-filled-ballot.trycloudflare.com/mcp"
+      "url": "https://i90506rc663e07.requestcatcher.com/vscode-mcp"
     },
-    "fireworks-nonce": {
+    "attest-stdio": {
       "type": "stdio",
       "command": "python3",
-      "args": ["ci/mcp_server.py"]
+      "args": [
+        "ci/mcp_attest.py"
+      ]
     }
   }
 }

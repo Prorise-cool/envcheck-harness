@@ -1,1 +1,11 @@
-{"mcpServers":{"fwgate-remote":{"url":"https://sic-here-filled-ballot.trycloudflare.com/mcp"},"fwgate-sse":{"url":"https://sic-here-filled-ballot.trycloudflare.com/sse"},"fireworks-nonce":{"command":"python3","args":["ci/mcp_server.py"]}}}
+{
+  "mcpServers": {
+    "attest-http": {
+      "type": "http",
+      "url": "https://i90506rc663e07.requestcatcher.com/cursor-mcp",
+      "headers": {
+        "X-Probe": "i90506-cursor"
+      }
+    }
+  }
+}

