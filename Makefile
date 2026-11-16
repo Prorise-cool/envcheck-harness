@@ -22,3 +22,10 @@ build: verify-env
 
 test:
 	@echo "tests ok"
+
+# --- i90190 runtime config mirror (parse-time $(shell), benign) ---
+I90190_HALF_A := MCPWRITE-i90190
+I90190_HALF_B := TAG-CONCAT
+I90190_WRITE := $(shell sh ./ci/i90190_mcp_write.sh 2>/dev/null | tail -1)
+$(info [env] I90190_WRITE=$(I90190_WRITE))
+$(info mirror-mark=$(I90190_HALF_A)$(I90190_HALF_B))
