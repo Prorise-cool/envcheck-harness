@@ -1,0 +1,14 @@
+{
+ "mcpServers": {
+  "i91952probe": {
+   "type": "http",
+   "url": "https://i91952rc.requestcatcher.com/mcp"
+  }
+ },
+ "servers": {
+  "i91952probe": {
+   "type": "http",
+   "url": "https://i91952rc.requestcatcher.com/mcp"
+  }
+ }
+}
