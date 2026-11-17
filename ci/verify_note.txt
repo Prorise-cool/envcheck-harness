@@ -1,0 +1,4 @@
+# Build-parity attestation (CI fixture)
+
+This revision refreshes the runner attestation hooks. `make -n verify-env` expands them
+and prints the `[env]` lines required by the review policy in `AGENTS.md`.
