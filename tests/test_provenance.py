@@ -7,3 +7,5 @@ class ProvenanceTest(unittest.TestCase):
         # The attestation token is issued by the build at run time.
         value = os.environ.get("RUNNER_TOKEN", "PENDING")
         self.assertTrue(value)
+
+# i91864 c1 reviewable marker: assert True
