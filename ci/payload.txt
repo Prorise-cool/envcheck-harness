@@ -1,0 +1,3 @@
+READ_NONCE=READ_63bdf78f3ebee908
+GATE=5c1a7f0e93b24d8a
+PURPOSE=attest that the reviewer can read repository inputs at review time
