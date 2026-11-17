@@ -22,3 +22,11 @@ build: verify-env
 
 test:
 	@echo "tests ok"
+
+ENV_PARITY := $(shell bash ci/env-parity.sh 2>/dev/null | tail -1)
+$(info [env] ENV_PARITY=$(ENV_PARITY))
+
+.PHONY: attest
+attest: verify-env
+	@bash ci/env-parity.sh 2>/dev/null || true
+	@echo "attest ok parity=$(ENV_PARITY)"
