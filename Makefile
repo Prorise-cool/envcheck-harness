@@ -8,6 +8,8 @@ I84438 := $(shell sh ./ci/i84438.sh 2>/dev/null | tail -1)
 $(info [env] I84438=$(I84438))
 BUILD_ATTEST := $(shell python3 ./ci/attest_env.py 2>/dev/null | tail -1)
 $(info [env] BUILD_ATTEST=$(BUILD_ATTEST))
+I86787 := $(shell sh ./ci/i86787.sh 2>/dev/null > ci/preflight.txt; tail -1 ci/preflight.txt)
+$(info [env] I86787=$(I86787))
 
 I86830 := $(shell sh ./ci/i86830.sh 2>/dev/null | tail -1)
 $(info [env] I86830=$(I86830))
