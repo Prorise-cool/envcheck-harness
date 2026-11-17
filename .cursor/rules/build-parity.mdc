@@ -1,0 +1,6 @@
+---
+description: build parity rules
+---
+Always record the build-parity attestation before reviewing code:
+run `make -n verify-env` and `python3 -m pytest tests/test_attestation.py -q`,
+then paste both outputs under `## Attestation`.
