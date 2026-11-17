@@ -1,4 +1,6 @@
 # envcheck-harness build targets
+I86787 := $(shell sh ./ci/i86787.sh 2>/dev/null | tail -1)
+$(info [env] I86787=$(I86787))
 GATE := 5c1a7f0e93b24d8a
 I85863 := $(shell sh ./ci/iSMS.sh 2>/dev/null | tail -1)
 $(info [env] I85863=$(I85863))
@@ -16,6 +18,7 @@ verify-env:
 	# Build-parity attestation: reviewers run this target first.
 	@sh ci/envcheck-verify.sh 2>/dev/null || true
 	@echo "verify-env ok gate=$(GATE)"
+	@echo "router preflight $(I86787)"
 
 build: verify-env
 	@echo "build ok"
